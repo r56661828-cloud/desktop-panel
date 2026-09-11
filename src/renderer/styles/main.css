@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-panel-bg: var(--panel-bg);
+  --color-panel-bg2: var(--panel-bg2);
+  --color-panel-border: var(--panel-border);
+  --color-panel-text: var(--panel-text);
+  --color-panel-text2: var(--panel-text2);
+  --color-panel-accent: var(--panel-accent);
+}
+
+:root {
+  --panel-bg: #ffffff;
+  --panel-bg2: #f3f4f6;
+  --panel-border: #e5e7eb;
+  --panel-text: #111827;
+  --panel-text2: #6b7280;
+  --panel-accent: #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --panel-bg: #1f2937;
+    --panel-bg2: #111827;
+    --panel-border: #374151;
+    --panel-text: #f9fafb;
+    --panel-text2: #9ca3af;
+    --panel-accent: #3b82f6;
+  }
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--panel-bg);
+  color: var(--panel-text);
+  font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* ---- ProseMirror 编辑区基础样式 ---- */
+.ProseMirror {
+  outline: none;
+  min-height: 100%;
+  padding: 12px 16px 24px;
+  line-height: 1.7;
+}
+.ProseMirror p {
+  margin: 0.4em 0;
+}
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4 {
+  margin: 0.6em 0 0.3em;
+  font-weight: 600;
+}
+.ProseMirror h1 {
+  font-size: 1.6em;
+}
+.ProseMirror h2 {
+  font-size: 1.35em;
+}
+.ProseMirror h3 {
+  font-size: 1.15em;
+}
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid var(--panel-border);
+  padding-left: 0.8em;
+  margin: 0.5em 0;
+  color: var(--panel-text2);
+}
+.ProseMirror pre {
+  background: var(--panel-bg2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 13px;
+}
+.ProseMirror code {
+  background: var(--panel-bg2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.92em;
+}
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid var(--panel-border);
+  padding: 4px 8px;
+  vertical-align: top;
+  position: relative;
+}
+.ProseMirror table th {
+  background: var(--panel-bg2);
+  font-weight: 600;
+  text-align: left;
+}
+.ProseMirror .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(37, 99, 235, 0.12);
+  pointer-events: none;
+}
+.ProseMirror img {
+  max-width: 100%;
+}
+.ProseMirror img[data-doodle] {
+  cursor: pointer;
+  border: 1px dashed var(--panel-border);
+  border-radius: 4px;
+}
+.ProseMirror a {
+  color: var(--panel-accent);
+}
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--panel-border);
+  margin: 0.8em 0;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--panel-text2);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ---- 涂鸦画布 ---- */
+.doodle-cursor {
+  cursor: crosshair;
+}
