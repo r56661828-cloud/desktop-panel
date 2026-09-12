@@ -28,6 +28,8 @@ export interface Settings {
   autoLaunch: boolean
   lastSaveDir: string | null
   recentFiles: string[]
+  declinedVersion: string | null // 更新确认框点「暂不」的版本（D1：该版本内不再自动下载/安装）
+  lastRunVersion: string // 升级说明 tab 触发标记（≠ app.getVersion() 时开页一次）
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,7 +37,21 @@ export const DEFAULT_SETTINGS: Settings = {
   pinned: false,
   autoLaunch: false,
   lastSaveDir: null,
-  recentFiles: []
+  recentFiles: [],
+  declinedVersion: null,
+  lastRunVersion: ''
+}
+
+// ---- 在线更新（docs/TECH-DESIGN-UPDATE.md） ----
+
+export type UpdatePhase = 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'error' | 'portable'
+
+export interface UpdateState {
+  phase: UpdatePhase
+  version?: string
+  percent?: number
+  releaseNotes?: string
+  error?: string
 }
 
 export interface WriteResult {

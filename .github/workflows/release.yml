@@ -1,0 +1,52 @@
+# 发布流水线：打 tag（v*）或手动触发 → Windows 打包 → 签名 → 发布 GitHub Release
+# 产物清单缺一不可（electron-updater 依赖）：Setup.exe + .blockmap + latest.yml
+# 前提：GitHub 公开仓库已建（docs/TECH-DESIGN-UPDATE.md §6）；签名前提见 docs/SIGNING.md
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write # 创建 Release 与上传产物
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Sign with SignPath
+        if: env.SIGNPATH_API_TOKEN != ''
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          SIGNPATH_PROJECT_ID: ${{ secrets.SIGNPATH_PROJECT_ID }}
+          SIGNPATH_SIGNING_POLICY: ${{ secrets.SIGNPATH_SIGNING_POLICY }}
+        shell: pwsh
+        run: |
+          # TODO(SIGNING.md)：接入 SignPath CLI 对 dist/win-unpacked/Desktop Panel.exe 与
+          # NSIS 安装器签名；具体项目/策略参数按 SignPath 后台为准。
+          Write-Host 'SignPath signing step - configure per docs/SIGNING.md'
+
+      - name: Publish release
+        run: npx electron-builder --win nsis --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

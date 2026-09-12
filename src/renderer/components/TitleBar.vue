@@ -3,11 +3,13 @@ import { onMounted, ref } from 'vue'
 import { Brush, FolderOpen, Minus, Pin, PinOff, Save, Table2, X } from '@lucide/vue'
 import { useTabsStore } from '@/stores/tabs'
 import { useUiStore } from '@/stores/ui'
+import { useUpdateStore } from '@/stores/update'
 import { editorRegistry } from '@/editor/editorRegistry'
 import TitleBarIcon from './TitleBarIcon.vue'
 
 const tabs = useTabsStore()
 const ui = useUiStore()
+const update = useUpdateStore()
 
 const pinned = ref(false)
 
@@ -32,7 +34,12 @@ async function togglePin(): Promise<void> {
 /** 插入 3×3 表格（FR-3.2） */
 function insertTable(): void {
   const tab = tabs.activeTab
-  if (!tab || tab.docType === 'plaintext') {
+  if (!tab) return
+  if (tab.readonly) {
+    ui.toast('只读标签不支持插入表格')
+    return
+  }
+  if (tab.docType === 'plaintext') {
     ui.toast('纯文本不支持表格，请改用 Markdown 文档', 'error')
     return
   }
@@ -78,6 +85,20 @@ function closePanel(): void {
         <template #icon><Save :size="15" /></template>
       </TitleBarIcon>
       <span class="mx-1 h-4 w-px bg-panel-border" />
+      <!-- 在线更新入口（TECH-DESIGN-UPDATE §5.1）：仅 downloaded 可点击弹确认框 -->
+      <button
+        v-if="update.buttonLabel"
+        class="rounded-full px-2.5 py-1 text-xs font-medium"
+        :class="
+          update.buttonClickable
+            ? 'bg-panel-accent text-white hover:opacity-90'
+            : 'cursor-default bg-panel-bg2 text-panel-text2'
+        "
+        :data-testid="update.buttonClickable ? 'update-btn' : 'update-progress'"
+        @click="update.openConfirm()"
+      >
+        {{ update.buttonLabel }}
+      </button>
       <TitleBarIcon tooltip="最小化" testid="minimize-btn" @click="minimize">
         <template #icon><Minus :size="15" /></template>
       </TitleBarIcon>

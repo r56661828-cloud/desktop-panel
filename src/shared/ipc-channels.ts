@@ -28,7 +28,14 @@ export const IPC = {
   // 应用
   AppQuit: 'app:quit',
   AppQuitRequest: 'app:quit-request',
-  EditorFocus: 'editor:focus'
+  EditorFocus: 'editor:focus',
+  // 在线更新（docs/TECH-DESIGN-UPDATE.md §4）
+  UpdateGetState: 'update:getState',
+  UpdateCheck: 'update:check',
+  UpdateInstall: 'update:install',
+  UpdateDecline: 'update:decline',
+  UpdateState: 'update:state',
+  UpdateChangelog: 'update:changelog'
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]

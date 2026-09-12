@@ -4,6 +4,7 @@ import { IPC } from '@shared/ipc-channels'
 import type { WindowManager } from './window'
 import type { ShortcutService } from './shortcut'
 import type { SettingsService } from './services/settings'
+import type { UpdateService } from './services/update'
 
 /** 托盘（PRD M1/M9）：常驻入口、快捷键冲突降级、退出确认入口 */
 export class TrayService {
@@ -13,7 +14,8 @@ export class TrayService {
   constructor(
     private winManager: WindowManager,
     private shortcuts: ShortcutService,
-    private settings: SettingsService
+    private settings: SettingsService,
+    private updater?: UpdateService
   ) {}
 
   /** 快捷键展示名（Control+Shift+Q → Ctrl+Shift+Q） */
@@ -65,6 +67,11 @@ export class TrayService {
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
         { label: '显示 / 隐藏面板', click: () => this.winManager.toggle() },
+        {
+          label: '检查更新',
+          enabled: this.updater?.enabled === true,
+          click: () => void this.updater?.check(true)
+        },
         { type: 'separator' },
         {
           label: '开机自启',

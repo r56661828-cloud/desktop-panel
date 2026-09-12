@@ -35,7 +35,14 @@ const api: PanelApi = {
   addRecent: (path) => ipcRenderer.invoke(IPC.RecentAdd, path),
   // 应用
   quit: (force) => ipcRenderer.invoke(IPC.AppQuit, force),
+  // 在线更新
+  getUpdateState: () => ipcRenderer.invoke(IPC.UpdateGetState),
+  checkForUpdates: (manual) => ipcRenderer.invoke(IPC.UpdateCheck, manual),
+  installUpdate: (version) => ipcRenderer.invoke(IPC.UpdateInstall, version),
+  declineUpdate: (version) => ipcRenderer.invoke(IPC.UpdateDecline, version),
   // 推送事件
+  onUpdateState: (cb) => subscribe(IPC.UpdateState, cb),
+  onChangelog: (cb) => subscribe(IPC.UpdateChangelog, cb),
   onFileChanged: (cb: (p: FileChangedPayload) => void) => subscribe<FileChangedPayload>(IPC.FileChanged, cb),
   onEditorFocus: (cb) => subscribe(IPC.EditorFocus, cb),
   onQuitRequest: (cb) => subscribe(IPC.AppQuitRequest, cb)

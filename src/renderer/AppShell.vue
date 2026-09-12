@@ -4,10 +4,12 @@ import { useDialog, useMessage } from 'naive-ui'
 import TitleBar from './components/TitleBar.vue'
 import TabBar from './components/TabBar.vue'
 import EditorArea from './components/EditorArea.vue'
+import UpdateDialog from './components/UpdateDialog.vue'
 import { editorRegistry } from './editor/editorRegistry'
 import { useDoodleStore } from './stores/doodle'
 import { useTabsStore } from './stores/tabs'
 import { useUiStore } from './stores/ui'
+import { useUpdateStore } from './stores/update'
 
 // 位于 NMessageProvider/NDialogProvider 子树内，注册 API 给 ui store
 const message = useMessage()
@@ -15,6 +17,7 @@ const dialog = useDialog()
 const tabs = useTabsStore()
 const doodle = useDoodleStore()
 const ui = useUiStore()
+const update = useUpdateStore()
 
 ui.registerMessageApi(message)
 ui.registerDialogApi(dialog)
@@ -23,6 +26,7 @@ let unsubscribers: (() => void)[] = []
 
 onMounted(async () => {
   await tabs.restoreDrafts()
+  await update.init()
 
   // 面板唤醒：外部变更兜底比对 + 聚焦编辑区（FR-1.2 / FR-6.5）
   unsubscribers.push(
@@ -32,6 +36,8 @@ onMounted(async () => {
       ed?.commands.focus()
     }),
     window.api.onFileChanged((p) => tabs.onFileChanged(p)),
+    window.api.onUpdateState((s) => update.applyState(s)),
+    window.api.onChangelog((p) => tabs.newChangelogTab(p.version, p.content)),
     window.api.onQuitRequest(async () => {
       const dirty = tabs.tabs.filter((t) => t.dirty)
       if (dirty.length) {
@@ -102,5 +108,6 @@ onBeforeUnmount(() => {
     <TitleBar />
     <TabBar />
     <EditorArea />
+    <UpdateDialog />
   </div>
 </template>

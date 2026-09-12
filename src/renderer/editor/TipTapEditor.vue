@@ -32,6 +32,7 @@ onMounted(() => {
       onEditDoodle: (attrs, pos) => doodle.startEdit(attrs, pos)
     }),
     content: props.tab.content,
+    editable: !props.tab.readonly,
     onUpdate: () => scheduleEmit(),
     onSelectionUpdate: () => updateToolbar(),
     onTransaction: () => updateToolbar()
@@ -72,7 +73,7 @@ function updateToolbar(): void {
     toolbarVisible.value = false
     return
   }
-  toolbarVisible.value = ed.isFocused && !ed.state.selection.empty && !doodle.active
+  toolbarVisible.value = ed.isFocused && !ed.state.selection.empty && !doodle.active && !props.tab.readonly
   if (!toolbarVisible.value) return
   try {
     const coords = ed.view.coordsAtPos(ed.state.selection.from)

@@ -36,3 +36,16 @@ export function isUnder(child: string, parent: string): boolean {
   const p = path.resolve(parent)
   return c === p || c.startsWith(p + path.sep)
 }
+
+/** 安全覆盖拼接：段内禁止路径分隔符与 ..，结果强制限制在 root 内；不合法返回 null */
+export function safeJoin(root: string, ...segments: string[]): string | null {
+  const resolvedRoot = path.resolve(root)
+  let cur = resolvedRoot
+  for (const seg of segments) {
+    if (!seg || seg === '.' || seg === '..') return null
+    if (seg.includes('/') || seg.includes('\\')) return null
+    cur = path.resolve(cur, seg)
+    if (!(cur === resolvedRoot || cur.startsWith(resolvedRoot + path.sep))) return null
+  }
+  return cur === resolvedRoot ? null : cur
+}

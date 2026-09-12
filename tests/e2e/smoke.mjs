@@ -52,6 +52,11 @@ try {
   const shortcutOk = await app.evaluate(({ globalShortcut }) => globalShortcut.isRegistered('Control+Shift+Q'))
   ok(shortcutOk, '全局快捷键 Ctrl+Shift+Q 注册成功')
 
+  // 更新守卫（TECH-DESIGN-UPDATE §3.1）：非打包环境更新功能禁用，标题栏无更新按钮
+  await win.waitForTimeout(300)
+  const updateBtnCount = await win.locator('[data-testid="update-btn"], [data-testid="update-progress"]').count()
+  ok(updateBtnCount === 0, 'dev 模式更新守卫生效（无更新按钮）')
+
   // 未钉住时普通层级（D1）
   const beforePin = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop())
   ok(beforePin === false, '未钉住时非置顶')

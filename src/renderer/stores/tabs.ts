@@ -18,6 +18,7 @@ export interface Tab {
   bom: boolean
   conflict: FileChangedPayload | null
   pendingAssets: string[]
+  readonly?: boolean // 升级说明等只读标签：不参与保存/草稿/涂鸦
 }
 
 const DRAFT_DEBOUNCE_MS = 800
@@ -92,7 +93,7 @@ export const useTabsStore = defineStore('tabs', () => {
   // ---- 内容同步 ----
   function setContent(id: string, content: string): void {
     const tab = tabs.value.find((t) => t.id === id)
-    if (!tab || tab.content === content) return
+    if (!tab || tab.readonly || tab.content === content) return
     tab.content = content
     tab.dirty = true
     scheduleDraft()
@@ -111,10 +112,10 @@ export const useTabsStore = defineStore('tabs', () => {
 
   function scheduleDraft(): void {
     if (draftTimer) clearTimeout(draftTimer)
-    draftTimer = setTimeout(flushDrafts, DRAFT_DEBOUNCE_MS)
+    draftTimer = setTimeout(() => void flushDrafts(), DRAFT_DEBOUNCE_MS)
   }
 
-  function flushDrafts(): void {
+  function flushDrafts(): Promise<void> {
     draftTimer = null
     const items: DraftItem[] = tabs.value
       .filter((t) => t.dirty)
@@ -127,7 +128,14 @@ export const useTabsStore = defineStore('tabs', () => {
         content: t.content,
         savedAt: Date.now()
       }))
-    void window.api.saveDrafts(items)
+    return window.api.saveDrafts(items)
+  }
+
+  /** 升级说明只读标签（TECH-DESIGN-UPDATE §3.5） */
+  function newChangelogTab(version: string, content: string): void {
+    const tab = newTab('markdown', content, null, `更新内容 v${version}`)
+    tab.readonly = true
+    tab.dirty = false
   }
 
   async function restoreDrafts(): Promise<void> {
@@ -166,6 +174,10 @@ export const useTabsStore = defineStore('tabs', () => {
   async function saveTab(id: string): Promise<boolean> {
     const tab = tabs.value.find((t) => t.id === id)
     if (!tab) return false
+    if (tab.readonly) {
+      ui.toast('此标签为只读（升级说明），无需保存')
+      return false
+    }
     if (!tab.filePath) return saveAs(id)
     let content = tab.content
     if (tab.pendingAssets.length) {
@@ -286,6 +298,10 @@ export const useTabsStore = defineStore('tabs', () => {
   function enterDoodle(): void {
     const tab = activeTab.value
     if (!tab) return
+    if (tab.readonly) {
+      ui.toast('只读标签不支持涂鸦')
+      return
+    }
     if (tab.docType === 'plaintext') {
       ui.toast('纯文本不支持涂鸦，请改用 Markdown 文档', 'error')
       return
@@ -397,6 +413,8 @@ export const useTabsStore = defineStore('tabs', () => {
     setContent,
     onEditorInput,
     restoreDrafts,
+    flushDrafts,
+    newChangelogTab,
     saveTab,
     saveActive,
     saveActiveAs,

@@ -5,6 +5,7 @@ import type { WindowManager } from './window'
 import type { FileService } from './services/file'
 import type { DraftService } from './services/draft'
 import type { SettingsService } from './services/settings'
+import type { UpdateService } from './services/update'
 import type { ShortcutService } from './shortcut'
 
 /**
@@ -16,7 +17,8 @@ export function registerIpc(
   files: FileService,
   drafts: DraftService,
   settings: SettingsService,
-  shortcuts: ShortcutService
+  shortcuts: ShortcutService,
+  updater: UpdateService
 ): void {
   const win = (): Electron.BrowserWindow => {
     const w = winManager.browserWindow
@@ -128,6 +130,21 @@ export function registerIpc(
   ipcMain.handle(IPC.AppQuit, (_e, force: unknown) => {
     if (force === true) app.quit()
   })
+
+  // ---- 在线更新（docs/TECH-DESIGN-UPDATE.md §4） ----
+  ipcMain.handle(IPC.UpdateGetState, () => updater.getState())
+
+  ipcMain.handle(IPC.UpdateCheck, (_e, manual: unknown) => updater.check(manual === true))
+
+  ipcMain.handle(IPC.UpdateInstall, (_e, version: unknown) => {
+    if (typeof version !== 'string') throw new Error('非法参数')
+    updater.install(version) // 版本一致性由 UpdateService 校验
+  })
+
+  ipcMain.handle(IPC.UpdateDecline, (_e, version: unknown) => {
+    if (typeof version !== 'string') throw new Error('非法参数')
+    return updater.decline(version)
+  })
 }
 
 function sanitizeSettings(patch: Partial<Settings>): Partial<Settings> {
@@ -137,5 +154,7 @@ function sanitizeSettings(patch: Partial<Settings>): Partial<Settings> {
   if (typeof patch.autoLaunch === 'boolean') out.autoLaunch = patch.autoLaunch
   if (typeof patch.lastSaveDir === 'string' || patch.lastSaveDir === null) out.lastSaveDir = patch.lastSaveDir ?? null
   if (Array.isArray(patch.recentFiles)) out.recentFiles = patch.recentFiles.filter((f) => typeof f === 'string').slice(0, 10)
+  if (typeof patch.declinedVersion === 'string' || patch.declinedVersion === null) out.declinedVersion = patch.declinedVersion ?? null
+  if (typeof patch.lastRunVersion === 'string') out.lastRunVersion = patch.lastRunVersion
   return out
 }

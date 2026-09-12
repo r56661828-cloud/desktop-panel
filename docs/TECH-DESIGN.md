@@ -28,6 +28,7 @@
 | 图标 | @lucide/vue | 1.45.x | lucide-vue-next 已弃用，官方迁移至 @lucide/vue |
 | 编辑器 | TipTap 3（ProseMirror 内核） | 3.31.x | 见 1.2 |
 | Markdown 序列化 | tiptap-markdown + 自定义序列化规则 | 0.9（peer 支持 @tiptap/core ^3） | 见 3.2 |
+| 在线更新 | electron-updater | 6.8.9 | 配套 electron-builder；GitHub Releases feed（docs/TECH-DESIGN-UPDATE.md） |
 | 画布（涂鸦） | 原生 Canvas 2D | — | 需求为矢量笔画记录，无需重型画布库 |
 | 单元级工具（如需） | vitest | 5.0 | 仅作为开发期自验工具，不含测试方案交付 |
 
@@ -335,6 +336,12 @@ App
 | `settings:get / set` | invoke | — / `Partial<Settings>` | `Settings` | 设置读写 |
 | `recent:add` | invoke | `{ path }` | — | 最近文件（P1） |
 | `app:quit` | invoke | — | — | 托盘退出（先走未保存确认流程） |
+| `update:getState` | invoke | — | `UpdateState` | 更新状态机当前值 |
+| `update:check` | invoke | `{ manual }` | `UpdateState` | 手动/定时检查入口 |
+| `update:install` | invoke | `{ version }` | — | 静默安装已下载版本（版本一致性校验） |
+| `update:decline` | invoke | `{ version }` | `UpdateState` | D1 拒绝语义 + 清缓存 |
+| `update:state` | on（推） | — | `UpdateState` | 状态机全量推送 |
+| `update:changelog` | on（推） | — | `{ version, content }` | 刚升级完成 → 开说明页 |
 | `file:changed` | on（推） | — | `{ path, mtimeMs }` | 外部变更推送 |
 | `shortcut:triggered` | on（推） | — | `{ action: 'show' \| 'hide' }` | 唤醒后聚焦编辑器等 |
 | `editor:focus` | on（推） | — | — | 主进程要求渲染聚焦编辑区 |

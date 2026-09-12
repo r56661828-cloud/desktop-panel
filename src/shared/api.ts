@@ -5,6 +5,7 @@ import type {
   OpenedFile,
   SaveAsResult,
   Settings,
+  UpdateState,
   WindowState,
   WriteResult
 } from './types'
@@ -36,6 +37,14 @@ export interface PanelApi {
   addRecent(path: string): Promise<void>
   // 应用
   quit(force: boolean): Promise<void>
+  // 在线更新
+  getUpdateState(): Promise<UpdateState>
+  checkForUpdates(manual: boolean): Promise<UpdateState>
+  installUpdate(version: string): Promise<void>
+  declineUpdate(version: string): Promise<UpdateState>
+  // 主进程推送事件（返回解绑函数）
+  onUpdateState(cb: (state: UpdateState) => void): () => void
+  onChangelog(cb: (payload: { version: string; content: string }) => void): () => void
   // 主进程推送事件（返回解绑函数）
   onFileChanged(cb: (payload: FileChangedPayload) => void): () => void
   onEditorFocus(cb: () => void): () => void
