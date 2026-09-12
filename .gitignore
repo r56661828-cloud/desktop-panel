@@ -3,3 +3,5 @@ out/
 dist/
 *.local
 .DS_Store
+.mimosa/
+*.tsbuildinfo

@@ -12,10 +12,12 @@ function onInput(e: Event): void {
 
 <template>
   <!-- 纯文本模式（PRD M4）：无格式渲染、不注入任何标签 -->
-  <textarea
-    class="h-full w-full flex-1 resize-none bg-panel-bg p-4 font-mono text-sm leading-6 text-panel-text outline-none"
-    :value="tab.content"
-    spellcheck="false"
-    @input="onInput"
-  />
+  <div class="editor-card min-w-0 flex-1 overflow-hidden rounded-xl border border-panel-border shadow-sm">
+    <textarea
+      class="h-full w-full resize-none bg-transparent p-4 font-mono text-sm leading-6 text-panel-text outline-none"
+      :value="tab.content"
+      spellcheck="false"
+      @input="onInput"
+    />
+  </div>
 </template>

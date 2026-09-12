@@ -1,0 +1,156 @@
+# Desktop Panel 发布签名方案（SignPath Foundation 免费签名）
+
+| 项 | 内容 |
+| --- | --- |
+| 文档版本 | v0.1 |
+| 撰写日期 | 2026-09-12 |
+| 适用版本 | v0.1.0（Electron 44 / electron-builder 26.15.3） |
+| 结论 | 走开源路线，申请 **SignPath Foundation 免费代码签名**，GitHub 主仓发布 + Gitee 镜像分发 |
+
+---
+
+## 1. 为什么是 SignPath Foundation（选型结论）
+
+| 途径 | 费用 | 前提/限制 | 结论 |
+| --- | --- | --- | --- |
+| **SignPath Foundation** | **0 元** | 必须开源（OSI 许可证）、源码在 GitHub/GitLab 公开仓库、产物免费分发、项目活跃维护；证书由 Foundation 代持（云端 HSM，私钥不出库），OV 级 | ✅ 采用 |
+| Certum「开源开发者」证书 | 约几十欧/年 | 个人证书，本地保管（云卡/SimpleSign） | 备选（若最终不开源） |
+| Azure Trusted Signing | ~$9.99/月 | 需组织/企业身份验证，个人开发者难通过 | ❌ |
+| 自签名证书 | 0 元 | 仅本机信任，分发无效；未签名 exe 已被 Win11 智能应用控制实测拦截（DEPLOY.md 5.1） | ❌ |
+
+> 免费个人代码签名证书品类已消亡，SignPath Foundation 是目前唯一免费且正规的分发级签名途径（微软官方文档也推荐 OSS 项目使用）。
+
+## 2. 前置条件（SignPath 审核要求 → 我方 checklist）
+
+| 审核要求 | 我方动作 | 状态 |
+| --- | --- | --- |
+| OSI 认可的开源许可证 | 加 `LICENSE`（推荐 MIT，简洁；Apache-2.0 亦可）；`package.json` 补 `"license": "MIT"` | ⏳ 待做 |
+| 公开源码仓库 | 建 **GitHub 公开仓库**并 push（Gitee 不受理申请） | ⏳ git 已提交（a98b3bf），待建远端仓 |
+| 产物免费分发 | GitHub Releases 免费下载 | ⏳ 随 CI 建立 |
+| 项目活跃维护 | 提交历史、多个 Release、完善 README（截图/构建说明/changelog）——审核人工看成熟度 | ⏳ 持续 |
+
+## 3. 申请步骤
+
+1. 访问 [signpath.org](https://signpath.org/) →「Free Code Signing for Open Source」→ Apply（无需个人身份证明，以仓库为准）；
+2. 填写：项目名、GitHub 仓库 URL、许可证、项目描述、下载页；
+3. 通过审核（数天到数周）后在 [signpath.io](https://signpath.io) 获得 **Organization**（证书由 Foundation 代持）；
+4. 在 SignPath 建 Project（slug 建议 `desktop-panel`）+ 两条签名策略：`test-policy` / `release-policy`；
+5. 建 **CI 用户**并生成 API Token（存 GitHub Secrets）；建议同时安装 **SignPath GitHub App**（Trusted Build：`release-policy` 可绑定"只签来自本仓库 Actions 的构建请求"，token 泄露也无法异地提交）。
+
+## 4. CI 发布流水线（GitHub Actions）
+
+`.github/workflows/release.yml` 骨架：
+
+```yaml
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: windows-latest        # NSIS 打包需 Windows；GitHub 托管机免 wine
+    permissions:
+      contents: write              # 允许创建 Release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run typecheck && npm test
+      - run: npm run build
+      - run: npx electron-builder --win --publish never   # 签名在 sign 钩子内完成
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.exe
+            dist/*.zip
+```
+
+说明：GitHub 托管机网络直连，不需要 WSL 里那两个 npmmirror 镜像变量；`npm run dist` 在此环境下 NSIS + zip 一次全出。
+
+## 5. 签名接入（核心）
+
+### 5.1 配置（已对照本地 electron-builder 26.15.3 源码验证）
+
+```jsonc
+// package.json 的 build 字段
+"win": {
+  "icon": "resources/icon.png",
+  "signtoolOptions": {
+    "sign": "scripts/sign.js",           // 自定义签名入口：函数 | 脚本路径 | 模块名
+    "signingHashAlgorithms": ["sha256"]  // ⚠️ 必设：默认 sha1+sha256 会按哈希各调一次钩子
+  }
+}
+```
+
+### 5.2 `scripts/sign.js` 骨架
+
+electron-builder 对**每个待签文件**调用一次本脚本，任务对象含 `path`（待签文件绝对路径）、`name`（productName）、`isNest` 等；签名完成后把结果写到 `task.resultOutputPath`（builder 会用它覆写原文件），或直接覆写 `task.path`。
+
+```js
+module.exports = async function sign(task) {
+  const { SIGNPATH_API_TOKEN, SIGNPATH_ORGANIZATION_ID } = process.env
+  if (!SIGNPATH_API_TOKEN) {
+    console.warn('[sign] 未配置 SIGNPATH_API_TOKEN，跳过签名（本地构建）')
+    return // 同一份配置本地/CI 通用：本地不出 token 就静默跳过
+  }
+  // 1) POST https://signpath.io/api/v1/{organizationId}/signing-requests
+  //    multipart 上传 task.path，附 projectId / signingPolicySlug / description
+  // 2) 轮询请求状态直至 Completed
+  // 3) 下载签名产物 → task.resultOutputPath = 本地临时文件路径
+  // 字段细节以 docs.signpath.io API 参考为准；亦可改调官方 PowerShell 模块一步到位：
+  //   Submit-SigningRequest -OrganizationId <id> -ProjectSlug desktop-panel `
+  //     -SigningPolicySlug release-policy -ApiToken $env:SIGNPATH_API_TOKEN `
+  //     -InputArtifactPath "<待签文件>" -OutputArtifactPath "<输出文件>" -WaitForCompletion
+}
+```
+
+### 5.3 签名覆盖面（一个钩子全覆盖的原因）
+
+签名发生在归档/封装之前，以下文件都会流经 sign 钩子：
+
+| 文件 | 说明 |
+| --- | --- |
+| `Desktop Panel.exe` | 在打进 zip 和 NSIS 之前签 → **绿色版与安装版内的主程序都带签名** |
+| `DesktopPanel-Setup-x.y.z.exe` | NSIS 安装包本体 |
+| NSIS 卸载器 | electron-builder 在安装包内自动二次签 |
+
+时间戳由 SignPath 侧自动加（RFC 3161），无需本地配置。
+
+> **不推荐**备选的"后置签名"路线（构建完用官方 GitHub Action 单独提交 Setup.exe）：zip 里的主 exe 和卸载器覆盖不到，要补就得解包签名重打包，得不偿失。官方 Action（[SignPath/github-action-submit-signing-request](https://github.com/SignPath/github-action-submit-signing-request)）留作将来需要独立签名步骤时的备件。
+
+## 6. 验证与用户侧效果
+
+- CI 内加验证步：PowerShell `Get-AuthenticodeSignature "<exe>"` 状态应为 `Valid`（或 `signtool verify /pa /all`）；
+- 用户侧：右键 exe → 属性 → 数字签名，应看到 SignPath Foundation 签发信息；
+- **预期管理**：签名消除"未签名"这一拦截主因（DEPLOY.md 5.1 实测的 SAC 拦截）；但 Foundation 证书是 OV 级（非 EV），新证书初期 SmartScreen 仍可能提示"未知发布者"、SAC 云信誉不足时个别机器仍可能拦——信誉随下载量累积后消失，属正常过程。
+
+## 7. Gitee 镜像分发
+
+1. Gitee 建镜像仓（开源仓需**实名认证 + 人工审核**），源码用仓库镜像/Actions 同步；
+2. Release 资产无官方自动镜像通道 → 每次发版**手动（或脚本调 Gitee API）上传同一套签名产物**；
+3. README 双语标注：「官方发布以 GitHub Releases 为准，Gitee 为下载镜像」；
+4. Gitee 下载的文件同样带 MOTW 标记触发 SmartScreen，签名同样生效。
+
+## 8. 风险与备选
+
+| 风险 | 处理 |
+| --- | --- |
+| SignPath 审核被拒/超时 | 补成熟度素材（README/截图/changelog/更多 Release）重申；急用则切 Certum 开源证书（付费，`signtoolOptions.certificateFile/certificatePassword` 走原生 signtool，无需自定义脚本） |
+| SignPath 云服务不可用 | CI 重试即可；已签产物不受影响。这也是 CI 流水线（阶段 1）先行于签名接入的原因 |
+| API Token 泄露 | 存 GitHub Secrets；release-policy 绑定 GitHub App（Trusted Build）后异地提交无效 |
+| 双哈希重复签名 | `signingHashAlgorithms: ["sha256"]` 必设（见 5.1） |
+| `package.json` 无 `license` 字段 | 开源时补 `"license": "MIT"`（`"private": true` 保留，防误发 npm） |
+
+## 9. 行动清单（按序）
+
+1. ✅ git 首次提交（已完成 a98b3bf）→ 建 GitHub 公开仓库并 push；
+2. 加 `LICENSE`（MIT）+ `package.json` 补 `"license": "MIT"`；
+3. README 补英文简介/截图/构建说明（审核素材）；
+4. 打 tag `v0.1.0` 跑通**未签名** Release 流水线（阶段 4 的 yml 去掉签名 env 即可先行）；
+5. 提交 SignPath 申请，等待期间完善 CI 与文档；
+6. 授权下来后接 `scripts/sign.js` + 两个 Secrets（半天级），发首个签名版 v0.1.1。

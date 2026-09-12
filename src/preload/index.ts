@@ -14,6 +14,7 @@ const api: PanelApi = {
   getState: () => ipcRenderer.invoke(IPC.WinGetState),
   setPinned: (pinned) => ipcRenderer.invoke(IPC.WinSetPinned, pinned),
   collapse: () => ipcRenderer.invoke(IPC.WinCollapse),
+  minimize: () => ipcRenderer.invoke(IPC.WinMinimize),
   // 文件
   openFiles: (multi) => ipcRenderer.invoke(IPC.DialogOpenFile, multi),
   saveAsDialog: (defaultName) => ipcRenderer.invoke(IPC.DialogSaveAs, defaultName),

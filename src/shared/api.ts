@@ -15,6 +15,7 @@ export interface PanelApi {
   getState(): Promise<WindowState>
   setPinned(pinned: boolean): Promise<void>
   collapse(): Promise<void>
+  minimize(): Promise<void>
   // 文件
   openFiles(multi?: boolean): Promise<OpenedFile[]>
   saveAsDialog(defaultName: string): Promise<SaveAsResult>

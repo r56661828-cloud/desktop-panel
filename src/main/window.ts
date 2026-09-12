@@ -97,6 +97,10 @@ export class WindowManager {
     this.win?.hide()
   }
 
+  minimize(): void {
+    this.win?.minimize()
+  }
+
   /** 钉住 = 始终置顶（screen-saver 级，覆盖普通置顶应用）；状态跨会话记忆 */
   setPinned(pinned: boolean): void {
     this.applyPinned(pinned)

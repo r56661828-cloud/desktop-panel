@@ -9,10 +9,11 @@
 | [PRD](docs/PRD.md) | 产品需求 v0.2：功能模块（M1–M10）、决策记录（D1–D6） |
 | [技术方案](docs/TECH-DESIGN.md) | 技术选型与版本策略、进程架构、核心模块设计、IPC 契约、脚手架步骤 |
 | [测试用例方案](docs/TEST-CASES.md) | 测试分层策略、功能用例、可靠性/性能/兼容性专项、冒烟集 |
+| [打包部署](docs/DEPLOY.md) | Windows 产物（zip 绿色版/NSIS 安装包）、镜像加速、部署自检清单、已知限制 |
 
 ## 核心特性
 
-- `Ctrl+Q` 全局快捷键唤醒/收起面板
+- `Ctrl+Shift+Q` 全局快捷键唤醒/收起面板
 - 钉住 = 始终置顶（Alt+Tab 切换应用后仍最前）；未钉住 = 普通窗口层级
 - Markdown 所见即所得（含表格），扩展格式以内嵌 HTML 落盘；纯文本模式
 - 单窗口多标签，独立保存与脏标记
@@ -22,7 +23,7 @@
 
 ## 技术栈
 
-Electron 44 · Vue 3.5 + TypeScript · electron-vite 5 · Vite 7 · Pinia 4 · Tailwind CSS 4 · TipTap 3（ProseMirror）
+Electron 44 · Vue 3.5 + TypeScript · electron-vite 5 · Vite 7 · Pinia 4 · Tailwind CSS 4 + Naive UI · TipTap 3（ProseMirror）
 
 ## 开发
 

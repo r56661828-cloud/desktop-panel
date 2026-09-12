@@ -30,8 +30,16 @@ const app = await electron.launch({
   timeout: 30000
 })
 
+/** 点击标题栏/工具条按钮后把鼠标移开，避免 NTooltip 悬浮层拦截后续点击 */
+let win
+async function clickButton(testid) {
+  await win.click(`[data-testid="${testid}"]`)
+  await win.mouse.move(360, 300)
+  await win.waitForTimeout(300)
+}
+
 try {
-  const win = await app.firstWindow()
+  win = await app.firstWindow()
   win.on('console', (m) => {
     if (m.type() === 'error') console.log('[console.error]', m.text())
   })
@@ -40,23 +48,21 @@ try {
   await win.waitForSelector('.drag-region', { timeout: 10000 })
   ok(true, '应用启动且标题栏渲染')
 
-  // 全局快捷键已注册（FR-1.1）
-  const shortcutOk = await app.evaluate(({ globalShortcut }) => globalShortcut.isRegistered('Control+Q'))
-  ok(shortcutOk, '全局快捷键 Ctrl+Q 注册成功')
+  // 全局快捷键已注册（FR-1.1，v0.1.0 起默认 Ctrl+Shift+Q）
+  const shortcutOk = await app.evaluate(({ globalShortcut }) => globalShortcut.isRegistered('Control+Shift+Q'))
+  ok(shortcutOk, '全局快捷键 Ctrl+Shift+Q 注册成功')
 
   // 未钉住时普通层级（D1）
   const beforePin = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop())
   ok(beforePin === false, '未钉住时非置顶')
 
-  // TC-M2-02: 钉住 → alwaysOnTop 生效
-  await win.click('button[title^="已钉住"], button[title^="未钉住"]')
-  await win.waitForTimeout(300)
+  // TC-M2-02: 钉住 → alwaysOnTop 生效（UI 改版后以 data-testid 定位）
+  await clickButton('pin-btn')
   const afterPin = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop())
   ok(afterPin === true, '钉住后置顶生效')
 
   // 恢复未钉住
-  await win.click('button[title^="已钉住"]')
-  await win.waitForTimeout(200)
+  await clickButton('pin-btn')
 
   // TC-M3-01: 输入 Markdown，WYSIWYG 渲染
   await win.click('.ProseMirror')
@@ -66,17 +72,31 @@ try {
   await win.keyboard.press('Enter')
   await win.keyboard.press('Enter') // 跳出标题块
   await win.keyboard.type('正文 **加粗** 文本')
-  await win.waitForSelector('h1:has-text("E2E 标题")', { timeout: 5000 })
-  await win.waitForSelector('strong:has-text("加粗")', { timeout: 5000 })
-  ok(true, 'Markdown 所见即所得渲染（标题/粗体）')
+  await win.keyboard.type('正文 **加粗** 文本')
+  try {
+    await win.waitForSelector('h1:has-text("E2E 标题")', { timeout: 5000 })
+    await win.waitForSelector('strong:has-text("加粗")', { timeout: 5000 })
+    ok(true, 'Markdown 所见即所得渲染（标题/粗体）')
+  } catch {
+    const html = await win.evaluate(() => document.querySelector('.ProseMirror')?.innerHTML?.slice(0, 400))
+    console.log('[诊断] ProseMirror:', html, 'active:', await win.evaluate(() => document.activeElement?.className))
+    throw new Error('h1 未出现')
+  }
 
   // 脏标记（FR-5.4）
   await win.waitForTimeout(400) // 等待 emit debounce
   const dirtyDot = await win.locator('.drag-region >> text=●').count()
   ok(dirtyDot > 0, '输入后标题栏出现脏标记 ●')
 
+  // P1-3 点击热区修复：短文档下点击编辑器下半区应出现光标
+  const pmBox = await win.locator('.ProseMirror').boundingBox()
+  await win.mouse.click(pmBox.x + pmBox.width / 2, pmBox.y + pmBox.height - 30)
+  await win.waitForTimeout(150)
+  const hotspotOk = await win.evaluate(() => document.activeElement?.classList?.contains('ProseMirror') === true)
+  ok(hotspotOk, '点击内容区下半区出现光标（热区修复）')
+
   // TC-M3-03(插入部分): 插入表格
-  await win.click('button[title^="插入表格"]')
+  await clickButton('table-btn')
   await win.waitForSelector('.ProseMirror table', { timeout: 5000 })
   await win.keyboard.type('表头A')
   await win.waitForTimeout(400)
@@ -95,14 +115,14 @@ try {
   ok(draftFound, '未保存内容自动落草稿')
 
   // TC-M8-01/02/05: 涂鸦模式 → 画曲线 → 完成插入
-  await win.click('button[title^="涂鸦"]')
+  await clickButton('doodle-btn')
   await win.waitForSelector('canvas', { timeout: 5000 })
   const box = await win.locator('canvas').boundingBox()
   await win.mouse.move(box.x + 30, box.y + 30)
   await win.mouse.down()
   for (let i = 1; i <= 10; i++) await win.mouse.move(box.x + 30 + i * 10, box.y + 30 + Math.sin(i) * 15)
   await win.mouse.up()
-  await win.click('button:has-text("完成")')
+  await win.click('[data-testid="doodle-complete"]')
   await win.waitForSelector('img[data-doodle]', { timeout: 5000 })
   ok(true, '涂鸦完成并插入文档')
 
@@ -124,13 +144,24 @@ try {
   // TC-M10-01: 多标签
   await win.keyboard.press('Control+t')
   await win.waitForTimeout(300)
-  const tabCount = await win.locator('button:has-text("未命名-")').count()
+  const tabCount = await win.locator('[data-testid="tab"], [data-testid="tab-active"]').count()
   ok(tabCount >= 2, 'Ctrl+T 新建标签')
 
   // TC-M10-02: 标签切换
   await win.keyboard.press('Control+Tab')
   await win.waitForTimeout(200)
   ok(true, 'Ctrl+Tab 标签切换无异常')
+
+  // P2 关闭按钮：✕ = 隐藏面板、应用驻留（UI-PLAN P1-2）
+  await clickButton('close-btn')
+  const hiddenByClose = await app.evaluate(({ BrowserWindow }) => !BrowserWindow.getAllWindows()[0].isVisible())
+  ok(hiddenByClose, '✕ 关闭面板（窗口隐藏）')
+  await app.evaluate(({ BrowserWindow }) => {
+    const w = BrowserWindow.getAllWindows()[0]
+    w.show()
+    w.focus()
+  })
+  await win.waitForTimeout(300)
 
   // 渲染进程安全基线（TC-C-05）
   const nodeExposed = await win.evaluate(() => typeof process !== 'undefined' || typeof require !== 'undefined')

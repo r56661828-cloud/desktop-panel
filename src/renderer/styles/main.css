@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 @theme inline {
   --color-panel-bg: var(--panel-bg);
@@ -7,25 +8,31 @@
   --color-panel-text: var(--panel-text);
   --color-panel-text2: var(--panel-text2);
   --color-panel-accent: var(--panel-accent);
+  --color-panel-card: var(--panel-card);
+  --radius-panel: var(--panel-radius);
 }
 
+/* ---- 暖纸便签主题（UI-PLAN §3）：纸白/暖灰/琥珀主色 ---- */
 :root {
-  --panel-bg: #ffffff;
-  --panel-bg2: #f3f4f6;
-  --panel-border: #e5e7eb;
-  --panel-text: #111827;
-  --panel-text2: #6b7280;
-  --panel-accent: #2563eb;
+  --panel-bg: #fdfbf7;        /* 纸白 */
+  --panel-bg2: #f5f0e8;       /* 暖灰（标题栏/标签栏） */
+  --panel-card: #ffffff;      /* 内容卡片 */
+  --panel-border: #e7e0d2;
+  --panel-text: #292524;
+  --panel-text2: #78716c;
+  --panel-accent: #d97706;    /* 琥珀（指示/强调，保证对比度） */
+  --panel-radius: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --panel-bg: #1f2937;
-    --panel-bg2: #111827;
-    --panel-border: #374151;
-    --panel-text: #f9fafb;
-    --panel-text2: #9ca3af;
-    --panel-accent: #3b82f6;
+    --panel-bg: #1c1917;      /* stone-900 暖黑 */
+    --panel-bg2: #292524;
+    --panel-card: #221f1d;
+    --panel-border: #44403c;
+    --panel-text: #fafaf9;
+    --panel-text2: #a8a29e;
+    --panel-accent: #f59e0b;
   }
 }
 
@@ -48,45 +55,75 @@ body,
   -webkit-app-region: no-drag;
 }
 
-/* ---- ProseMirror 编辑区基础样式 ---- */
+/* ---- 编辑区卡片与点击热区修复（UI-PLAN P1-3）----
+   flex 链：.editor-wrap(卡片,全高) → EditorContent 包裹层(flex:1) → .ProseMirror(flex:1)，
+   使 ProseMirror 高度=内容区全高，空白区域点击可落焦点。 */
+.editor-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-card);
+}
+.editor-card > .tiptap-holder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.editor-card > .tiptap-holder > .tiptap {
+  flex: 1;
+}
+
+/* ---- ProseMirror 编辑区 ---- */
 .ProseMirror {
   outline: none;
   min-height: 100%;
-  padding: 12px 16px 24px;
-  line-height: 1.7;
+  padding: 16px 18px 28px;
+  line-height: 1.75;
 }
 .ProseMirror p {
-  margin: 0.4em 0;
+  margin: 0.45em 0;
 }
 .ProseMirror h1,
 .ProseMirror h2,
 .ProseMirror h3,
 .ProseMirror h4 {
-  margin: 0.6em 0 0.3em;
-  font-weight: 600;
+  margin: 0.7em 0 0.35em;
+  font-weight: 650;
 }
 .ProseMirror h1 {
-  font-size: 1.6em;
+  font-size: 1.55em;
 }
 .ProseMirror h2 {
-  font-size: 1.35em;
+  font-size: 1.3em;
 }
 .ProseMirror h3 {
-  font-size: 1.15em;
+  font-size: 1.12em;
 }
 .ProseMirror ul,
 .ProseMirror ol {
   padding-left: 1.5em;
 }
+.ProseMirror ul li {
+  list-style: disc;
+}
+.ProseMirror ol li {
+  list-style: decimal;
+}
+.ProseMirror ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.25em;
+}
 .ProseMirror blockquote {
-  border-left: 3px solid var(--panel-border);
-  padding-left: 0.8em;
-  margin: 0.5em 0;
+  border-left: 3px solid var(--panel-accent);
+  background: color-mix(in srgb, var(--panel-accent) 6%, transparent);
+  border-radius: 0 6px 6px 0;
+  padding: 2px 0.8em;
+  margin: 0.6em 0;
   color: var(--panel-text2);
 }
 .ProseMirror pre {
   background: var(--panel-bg2);
-  border-radius: 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
   padding: 10px 12px;
   overflow-x: auto;
   font-family: Consolas, 'Courier New', monospace;
@@ -94,18 +131,20 @@ body,
 }
 .ProseMirror code {
   background: var(--panel-bg2);
-  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
   padding: 1px 5px;
   font-family: Consolas, 'Courier New', monospace;
-  font-size: 0.92em;
+  font-size: 0.9em;
 }
 .ProseMirror pre code {
   background: none;
+  border: none;
   padding: 0;
 }
 .ProseMirror table {
   border-collapse: collapse;
-  margin: 0.6em 0;
+  margin: 0.7em 0;
   table-layout: fixed;
   width: 100%;
   overflow: hidden;
@@ -113,7 +152,7 @@ body,
 .ProseMirror table td,
 .ProseMirror table th {
   border: 1px solid var(--panel-border);
-  padding: 4px 8px;
+  padding: 5px 8px;
   vertical-align: top;
   position: relative;
 }
@@ -126,7 +165,7 @@ body,
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(37, 99, 235, 0.12);
+  background: color-mix(in srgb, var(--panel-accent) 15%, transparent);
   pointer-events: none;
 }
 .ProseMirror img {
@@ -135,7 +174,8 @@ body,
 .ProseMirror img[data-doodle] {
   cursor: pointer;
   border: 1px dashed var(--panel-border);
-  border-radius: 4px;
+  border-radius: 8px;
+  padding: 2px;
 }
 .ProseMirror a {
   color: var(--panel-accent);
@@ -143,7 +183,7 @@ body,
 .ProseMirror hr {
   border: none;
   border-top: 1px solid var(--panel-border);
-  margin: 0.8em 0;
+  margin: 0.9em 0;
 }
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);

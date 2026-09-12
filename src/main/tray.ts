@@ -8,6 +8,7 @@ import type { SettingsService } from './services/settings'
 /** 托盘（PRD M1/M9）：常驻入口、快捷键冲突降级、退出确认入口 */
 export class TrayService {
   private tray: Tray | null = null
+  private clickTimer: NodeJS.Timeout | null = null
 
   constructor(
     private winManager: WindowManager,
@@ -15,11 +16,46 @@ export class TrayService {
     private settings: SettingsService
   ) {}
 
+  /** 快捷键展示名（Control+Shift+Q → Ctrl+Shift+Q） */
+  private shortcutDisplay(): string {
+    return this.settings.current.shortcut.replace(/Control\+/g, 'Ctrl+')
+  }
+
   create(): void {
-    const iconPath = path.join(app.getAppPath(), 'resources/tray.png')
+    // 开发态：项目根 resources/；安装包：extraResources 拷贝到 <安装目录>/resources/
+    const iconPath = app.isPackaged
+      ? path.join(process.resourcesPath, 'tray.png')
+      : path.join(app.getAppPath(), 'resources/tray.png')
     const icon = nativeImage.createFromPath(iconPath)
     this.tray = new Tray(icon)
-    this.tray.setToolTip('Desktop Panel — Ctrl+Q 唤醒')
+    this.tray.setToolTip(`Desktop Panel — ${this.shortcutDisplay()} 唤醒`)
+
+    // Windows 惯例：托盘图标左键单击 = 显示/隐藏切换；双击 = 仅显示聚焦（FR-1.5）
+    this.tray.on('click', () => {
+      if (this.clickTimer) {
+        // 双击的第二段：取消单击的 toggle，由 double-click 处理
+        clearTimeout(this.clickTimer)
+        this.clickTimer = null
+        return
+      }
+      this.clickTimer = setTimeout(() => {
+        this.clickTimer = null
+        this.winManager.toggle()
+      }, 300)
+    })
+    this.tray.on('double-click', () => {
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer)
+        this.clickTimer = null
+      }
+      const win = this.winManager.browserWindow
+      if (win) {
+        if (win.isMinimized()) win.restore()
+        win.show()
+        win.focus()
+      }
+    })
+
     this.rebuildMenu()
   }
 
@@ -55,12 +91,12 @@ export class TrayService {
       try {
         this.tray.displayBalloon({
           title: '全局快捷键注册失败',
-          content: 'Ctrl+Q 已被其他应用占用，可从托盘菜单唤起面板，或在设置中修改快捷键。'
+          content: `${this.shortcutDisplay()} 已被其他应用占用，可点击托盘图标唤起面板，或在设置中修改快捷键。`
         })
       } catch {
         // 非 Windows 平台无 displayBalloon
       }
-      this.tray.setToolTip('Desktop Panel — 快捷键不可用，请从托盘唤起')
+      this.tray.setToolTip('Desktop Panel — 快捷键不可用，请点击托盘图标唤起')
     }
   }
 

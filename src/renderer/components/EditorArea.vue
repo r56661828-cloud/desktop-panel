@@ -22,10 +22,10 @@ watch(
 </script>
 
 <template>
-  <div class="relative flex min-h-0 flex-1">
+  <div class="relative flex min-h-0 flex-1 gap-0 bg-panel-bg p-1.5">
     <div
       v-if="tabs.activeTab?.conflict"
-      class="absolute left-0 right-0 top-0 z-30 flex items-center justify-between bg-amber-500/90 px-3 py-1.5 text-xs text-white"
+      class="absolute left-3 right-3 top-3 z-30 flex items-center justify-between rounded-lg bg-amber-500/95 px-3 py-1.5 text-xs text-white shadow-md"
     >
       <span>文件已在磁盘上被修改</span>
       <span class="flex gap-2">
@@ -38,7 +38,7 @@ watch(
       v-for="tab in tabs.tabs"
       v-show="tab.id === tabs.activeId"
       :key="tab.id"
-      class="absolute inset-0 flex"
+      class="absolute inset-3 flex"
     >
       <PlainEditor v-if="tab.docType === 'plaintext'" :tab="tab" />
       <TipTapEditor v-else :tab="tab" />

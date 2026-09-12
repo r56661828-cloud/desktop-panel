@@ -5,6 +5,7 @@ export const IPC = {
   WinSetPinned: 'win:setPinned',
   WinGetState: 'win:getState',
   WinCollapse: 'win:collapse',
+  WinMinimize: 'win:minimize',
   // 文件对话框与读写
   DialogOpenFile: 'dialog:openFile',
   DialogSaveAs: 'dialog:saveAs',

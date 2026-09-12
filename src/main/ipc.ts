@@ -33,6 +33,8 @@ export function registerIpc(
 
   ipcMain.handle(IPC.WinCollapse, () => winManager.collapse())
 
+  ipcMain.handle(IPC.WinMinimize, () => winManager.minimize())
+
   ipcMain.handle(IPC.WinToggle, () => winManager.toggle())
 
   // ---- 文件 ----

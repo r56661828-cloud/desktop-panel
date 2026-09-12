@@ -31,7 +31,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  shortcut: 'Control+Q',
+  shortcut: 'Control+Shift+Q',
   pinned: false,
   autoLaunch: false,
   lastSaveDir: null,

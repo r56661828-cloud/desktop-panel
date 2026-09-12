@@ -2,6 +2,8 @@
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import type { ChainedCommands } from '@tiptap/core'
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { Bold, Code, Eraser, Italic, Strikethrough, Underline as UnderlineIcon } from '@lucide/vue'
+import { NButton, NColorPicker, NSelect, NTooltip } from 'naive-ui'
 import { buildExtensions } from './extensions'
 import { getMarkdown, setMarkdown } from './markdown'
 import { editorRegistry } from './editorRegistry'
@@ -18,10 +20,11 @@ const editor = shallowRef<Editor>()
 let lastEmitted = props.tab.content
 let updateTimer: number | undefined
 
-// ---- 浮动格式工具栏（PRD FR-7.2） ----
+// ---- 浮动格式工具栏（PRD FR-7.2 / UI-PLAN P1-5） ----
 const toolbarVisible = ref(false)
 const toolbarStyle = ref({ left: '0px', top: '0px' })
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px']
+const FONT_OPTIONS = [12, 14, 16, 18, 20, 24].map((n) => ({ label: String(n), value: String(n) }))
+const COLORS = ['#111827', '#ff0000', '#ff9900', '#ffcc00', '#33cc33', '#2563eb', '#9333ea', '#ffffff']
 
 onMounted(() => {
   const ed = new Editor({
@@ -73,7 +76,7 @@ function updateToolbar(): void {
   if (!toolbarVisible.value) return
   try {
     const coords = ed.view.coordsAtPos(ed.state.selection.from)
-    const wrap = ed.view.dom.closest('.editor-wrap')?.getBoundingClientRect()
+    const wrap = ed.view.dom.closest('.editor-card')?.getBoundingClientRect()
     if (!wrap) return
     toolbarStyle.value = {
       left: `${Math.max(4, coords.left - wrap.left)}px`,
@@ -90,58 +93,98 @@ function cmd(fn: (c: ChainedCommands) => ChainedCommands): void {
 }
 
 function clearFormat(): void {
-  cmd((c) =>
-    c.unsetAllMarks().unsetFontSize().unsetColor().unsetBackgroundColor()
-  )
+  cmd((c) => c.unsetAllMarks().unsetFontSize().unsetColor().unsetBackgroundColor())
 }
 
-function onSizeChange(e: Event): void {
-  const v = (e.target as HTMLSelectElement).value
-  cmd((c) => (v ? c.setFontSize(v) : c.unsetFontSize()))
-}
-
-function onColorInput(e: Event): void {
-  const v = (e.target as HTMLInputElement).value
-  cmd((c) => c.setColor(v))
-}
-
-function onBgColorInput(e: Event): void {
-  const v = (e.target as HTMLInputElement).value
-  cmd((c) => c.setBackgroundColor(v))
+function onFontSize(v: string | null): void {
+  cmd((c) => (v ? c.setFontSize(`${v}px`) : c.unsetFontSize()))
 }
 </script>
 
 <template>
-  <div class="editor-wrap relative flex-1 overflow-y-auto">
-    <!-- 浮动格式工具栏 -->
+  <!-- editor-card：卡片视觉 + 点击热区修复的 flex 链（styles/main.css） -->
+  <div class="editor-wrap editor-card relative min-w-0 flex-1 overflow-y-auto rounded-xl border border-panel-border shadow-sm">
     <div
       v-if="toolbarVisible"
-      class="no-drag absolute z-20 flex items-center gap-0.5 rounded-md border border-panel-border bg-panel-bg p-1 shadow-lg"
+      class="no-drag absolute z-20 flex items-center gap-0.5 rounded-[10px] border border-panel-border bg-panel-bg p-1 shadow-lg"
       :style="toolbarStyle"
     >
-      <button class="rounded px-1.5 py-0.5 text-xs font-bold hover:bg-panel-bg2" title="加粗 Ctrl+B" @click="cmd((c) => c.toggleBold())">B</button>
-      <button class="rounded px-1.5 py-0.5 text-xs italic hover:bg-panel-bg2" title="斜体 Ctrl+I" @click="cmd((c) => c.toggleItalic())">I</button>
-      <button class="rounded px-1.5 py-0.5 text-xs underline hover:bg-panel-bg2" title="下划线 Ctrl+U" @click="cmd((c) => c.toggleUnderline())">U</button>
-      <button class="rounded px-1.5 py-0.5 text-xs line-through hover:bg-panel-bg2" title="删除线 Ctrl+Shift+X" @click="cmd((c) => c.toggleStrike())">S</button>
-      <button class="rounded px-1.5 py-0.5 font-mono text-xs hover:bg-panel-bg2" title="行内代码 Ctrl+E" @click="cmd((c) => c.toggleCode())">&lt;&gt;</button>
-      <select class="rounded border border-panel-border bg-panel-bg px-1 py-0.5 text-xs" title="字号" @change="onSizeChange">
-        <option value="">字号</option>
-        <option v-for="s in FONT_SIZES" :key="s" :value="s">{{ parseInt(s) }}</option>
-      </select>
-      <input type="color" class="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" title="字体颜色" @input="onColorInput" />
-      <input type="color" class="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" title="背景色" @input="onBgColorInput" />
-      <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="清除格式" @click="clearFormat">⌫</button>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleBold())"><template #icon><Bold :size="14" /></template></NButton>
+        </template>
+        加粗 Ctrl+B
+      </NTooltip>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleItalic())"><template #icon><Italic :size="14" /></template></NButton>
+        </template>
+        斜体 Ctrl+I
+      </NTooltip>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleUnderline())"><template #icon><UnderlineIcon :size="14" /></template></NButton>
+        </template>
+        下划线 Ctrl+U
+      </NTooltip>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleStrike())"><template #icon><Strikethrough :size="14" /></template></NButton>
+        </template>
+        删除线 Ctrl+Shift+X
+      </NTooltip>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleCode())"><template #icon><Code :size="14" /></template></NButton>
+        </template>
+        行内代码 Ctrl+E
+      </NTooltip>
+      <NSelect
+        size="tiny"
+        clearable
+        placeholder="字号"
+        :options="FONT_OPTIONS"
+        :width="76"
+        class="mx-0.5"
+        @update:value="onFontSize"
+      />
+      <NColorPicker
+        size="small"
+        :show-alpha="false"
+        :swatches="COLORS"
+        :default-value="'#111827'"
+        :style="{ width: '30px', height: '22px' }"
+        title="字体颜色"
+        @update:value="(v: string) => cmd((c) => c.setColor(v))"
+      />
+      <NColorPicker
+        size="small"
+        :show-alpha="false"
+        :swatches="['transparent', ...COLORS]"
+        :default-value="'transparent'"
+        :style="{ width: '30px', height: '22px' }"
+        title="背景色"
+        @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v))"
+      />
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <NButton quaternary size="tiny" data-testid="clear-format" @click="clearFormat"><template #icon><Eraser :size="14" /></template></NButton>
+        </template>
+        清除格式
+      </NTooltip>
+
+      <!-- 表格上下文操作（FR-3.2） -->
       <template v-if="editor?.isActive('table')">
         <span class="mx-0.5 h-4 w-px bg-panel-border" />
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="上方插入行" @click="cmd((c) => c.addRowBefore())">↑行</button>
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="下方插入行" @click="cmd((c) => c.addRowAfter())">↓行</button>
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="左侧插入列" @click="cmd((c) => c.addColumnBefore())">←列</button>
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="右侧插入列" @click="cmd((c) => c.addColumnAfter())">→列</button>
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="删除行" @click="cmd((c) => c.deleteRow())">删行</button>
-        <button class="rounded px-1.5 py-0.5 text-xs hover:bg-panel-bg2" title="删除列" @click="cmd((c) => c.deleteColumn())">删列</button>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.addRowBefore())">↑行</NButton>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.addRowAfter())">↓行</NButton>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.addColumnBefore())">←列</NButton>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.addColumnAfter())">→列</NButton>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.deleteRow())">删行</NButton>
+        <NButton quaternary size="tiny" @click="cmd((c) => c.deleteColumn())">删列</NButton>
       </template>
     </div>
 
-    <EditorContent :editor="editor" class="min-h-full" />
+    <EditorContent :editor="editor" class="tiptap-holder prose prose-sm dark:prose-invert max-w-none" />
   </div>
 </template>

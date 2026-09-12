@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Circle, Eraser, MoveUpRight, Pencil, Redo2, Slash, Square, Undo2 } from '@lucide/vue'
+import { NButton } from 'naive-ui'
 import {
   BRUSH_SIZES,
   DOODLE_VERSION,
@@ -25,13 +27,14 @@ const sizeKey = ref<BrushSizeKey>('medium')
 const strokes = ref<DoodleStroke[]>([])
 const redoStack = ref<DoodleStroke[]>([])
 
-const TOOLS: { key: DoodleTool; label: string; title: string }[] = [
-  { key: 'pen', label: '✎', title: '自由曲线' },
-  { key: 'line', label: '／', title: '直线' },
-  { key: 'arrow', label: '→', title: '箭头' },
-  { key: 'rect', label: '▭', title: '矩形' },
-  { key: 'ellipse', label: '◯', title: '圆/椭圆' },
-  { key: 'eraser', label: '⌫', title: '橡皮擦' }
+const TOOL_ICONS = { pen: Pencil, line: Slash, arrow: MoveUpRight, rect: Square, ellipse: Circle, eraser: Eraser }
+const TOOLS: { key: DoodleTool; title: string }[] = [
+  { key: 'pen', title: '自由曲线' },
+  { key: 'line', title: '直线' },
+  { key: 'arrow', title: '箭头' },
+  { key: 'rect', title: '矩形' },
+  { key: 'ellipse', title: '圆/椭圆' },
+  { key: 'eraser', title: '橡皮擦' }
 ]
 const COLORS = ['#ff0000', '#ff9900', '#ffcc00', '#33cc33', '#2563eb', '#9333ea', '#111827', '#ffffff']
 const SIZES: { key: BrushSizeKey; label: string }[] = [
@@ -326,16 +329,16 @@ defineExpose({ editingPngName })
       @pointercancel="onUp"
     />
     <!-- 工具条（FR-8.1/8.2） -->
-    <div class="no-drag absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-md border border-panel-border bg-panel-bg p-1 shadow-lg">
+    <div class="no-drag absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-[10px] border border-panel-border bg-panel-bg p-1 shadow-lg">
       <button
         v-for="t in TOOLS"
         :key="t.key"
-        class="rounded px-1.5 py-0.5 text-xs"
-        :class="tool === t.key ? 'bg-panel-accent text-white' : 'text-panel-text2 hover:bg-panel-bg2'"
+        class="flex items-center justify-center rounded p-1 text-panel-text2"
+        :class="tool === t.key ? 'bg-panel-accent text-white' : 'hover:bg-panel-bg2'"
         :title="t.title"
         @click="tool = t.key"
       >
-        {{ t.label }}
+        <component :is="TOOL_ICONS[t.key]" :size="14" />
       </button>
       <span class="mx-1 h-4 w-px bg-panel-border" />
       <span
@@ -357,18 +360,24 @@ defineExpose({ editingPngName })
         {{ s.label }}
       </button>
       <span class="mx-1 h-4 w-px bg-panel-border" />
-      <button class="rounded px-1.5 py-0.5 text-xs text-panel-text2 hover:bg-panel-bg2" title="撤销 Ctrl+Z" @click="undo">↶</button>
-      <button class="rounded px-1.5 py-0.5 text-xs text-panel-text2 hover:bg-panel-bg2" title="重做 Ctrl+Y" @click="redo">↷</button>
+      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2" title="撤销 Ctrl+Z" @click="undo">
+        <Undo2 :size="14" />
+      </button>
+      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2" title="重做 Ctrl+Y" @click="redo">
+        <Redo2 :size="14" />
+      </button>
       <span class="mx-1 h-4 w-px bg-panel-border" />
-      <button class="rounded px-2 py-0.5 text-xs text-panel-text hover:bg-panel-bg2" title="取消（丢弃）" @click="cancel">取消</button>
-      <button
-        class="rounded bg-panel-accent px-2 py-0.5 text-xs text-white disabled:opacity-40"
-        :disabled="!canComplete"
+      <NButton size="tiny" quaternary data-testid="doodle-cancel" title="取消（丢弃）" @click="cancel">取消</NButton>
+      <NButton
+        size="tiny"
+        type="primary"
+        data-testid="doodle-complete"
         title="完成并插入文档"
+        :disabled="!canComplete"
         @click="complete"
       >
         完成
-      </button>
+      </NButton>
     </div>
   </div>
 </template>

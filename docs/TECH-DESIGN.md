@@ -7,6 +7,7 @@
 | 对应 PRD | v0.2（docs/PRD.md） |
 | 范围 | 开发方案（不含测试方案） |
 
+> v0.4 变更记录：按 UI-PLAN v0.1 引入 Naive UI / @lucide/vue / @tailwindcss/typography，1.1 选型表与版本清单同步更新；新增窗口最小化 IPC（win:minimize）。
 > v0.3 变更记录：按「三方库不得落后 latest 超过一个大版本」的硬性要求，全量刷新版本基线（Electron 44 / Vite 7 / Vue 3.5 / Pinia 4 / Tailwind 4 / TypeScript 7 / TipTap 3 / vitest 5），新增 1.1 版本策略与锁定版本清单；6.1 补充依赖安装注意事项。
 > v0.2 变更记录：6.1 节新增「项目创建步骤（Scaffold）」，记录工程的手工搭建过程与可复现步骤。
 
@@ -22,7 +23,9 @@
 | 前端框架 | Vue + TypeScript | Vue 3.5.x / TS 7.0.x | 组合式 API 适合多标签状态管理；生态成熟 |
 | 构建 | electron-vite + Vite | electron-vite 5.0 / Vite 7.3.x | 主/预加载/渲染三段式构建开箱即用，HMR 完整 |
 | 状态管理 | Pinia | 4.0.x | 多标签、设置、窗口状态集中管理 |
-| 样式 | Tailwind CSS | 4.3.x（CSS-first，@tailwindcss/postcss） | 无边框自绘 UI 组件量不大，原子类足够，避免重型组件库 |
+| 样式 | Tailwind CSS + @tailwindcss/typography | 4.3.x / 0.5.x | 原子类 + Markdown 正文排版（prose） |
+| 组件库 | Naive UI | 2.45.x（npm latest） | UI-PLAN v0.1 决策：Tooltip/Dialog/Message/ColorPicker 成套接入，CSS-in-JS 与 Tailwind 无冲突；主题走 themeOverrides 与全局 CSS 变量共享暖纸色板 |
+| 图标 | @lucide/vue | 1.45.x | lucide-vue-next 已弃用，官方迁移至 @lucide/vue |
 | 编辑器 | TipTap 3（ProseMirror 内核） | 3.31.x | 见 1.2 |
 | Markdown 序列化 | tiptap-markdown + 自定义序列化规则 | 0.9（peer 支持 @tiptap/core ^3） | 见 3.2 |
 | 画布（涂鸦） | 原生 Canvas 2D | — | 需求为矢量笔画记录，无需重型画布库 |
@@ -44,6 +47,9 @@
 | @vue/devtools-api | 8.2.1 | 满足 pinia 4 peer |
 | tailwindcss | 4.3.3 | v4 CSS-first，无 tailwind.config.js |
 | @tailwindcss/postcss | 4.3.3 | 接入 PostCSS，v4 自带前缀处理 |
+| @tailwindcss/typography | 0.5.20 | Markdown 正文 prose 排版 |
+| naive-ui | 2.45.3 | 组件库（UI-PLAN v0.1） |
+| @lucide/vue | 1.45.0 | 图标（lucide-vue-next 已弃用） |
 | postcss | 8.5.28 | |
 | typescript | 7.0.2 | vue-tsc peer `>=5.0.0` 满足；首次 typecheck 需验证兼容性 |
 | vue-tsc | 3.3.11 | |
@@ -51,7 +57,7 @@
 | @tiptap/* | 3.31.3 | 全部 TipTap 扩展统一 3.31.3，@tiptap/pm 必须精确同版 |
 | tiptap-markdown | 0.9.0 | peer `@tiptap/core ^3.0.1`，与 TipTap 3 匹配 |
 
-不引入 UI 组件库：面板 UI 面积小、控件集中（标题栏/工具栏/标签栏/toast），自绘可控且体积小；仅取色器等复杂控件可引入轻量库（如 `vue3-colorpicker`）。
+UI 组件采用 Naive UI 按需引入（v0.1 时期为纯自绘 Tailwind，UI-PLAN v0.1 起引入组件库升级视觉）；无边框窗口骨架（drag 区、窗口控制）与 TipTap/涂鸦功能层仍为自研。
 
 ### 1.2 编辑器选型：TipTap vs 备选
 
@@ -210,7 +216,7 @@ interface TabItem {
 
 ```ts
 // ShortcutService
-globalShortcut.register('Control+Q', () => win.toggle())  // toggle: 显示+聚焦 / 隐藏
+globalShortcut.register('Control+Shift+Q', () => win.toggle())  // toggle: 显示+聚焦 / 隐藏
 ```
 
 - toggle 显示时：`win.show()` → 若最小化先还原 → `win.focus()` → 渲染进程聚焦活动标签编辑器（IPC `editor:focus`）；
@@ -437,7 +443,7 @@ npm install --no-audit --no-fund
 | # | 风险 | 影响 | 应对 |
 | --- | --- | --- | --- |
 | 7.1 | **md 往返一致性**：md → WYSIWYG → md 后格式漂移（缩进、列表空行、HTML 合并差异） | 保存后文件 diff 噪音、用户内容意外变化 | 建立固定样例集（标题/表格/嵌套列表/扩展格式/代码块）做开发期自验脚本（vitest 断言二次序列化稳定）；规则上「能保真则保真」，未识别语法在解析时以原始文本块保留 |
-| 7.2 | `Ctrl+Q` 全局占用率高（部分输入法/工具） | 唤醒不可用 | 注册失败检测 + 托盘降级入口 + 设置改键（P2 前可用 `settings.json` 手改） |
+| 7.2 | `Ctrl+Shift+Q` 全局占用率高（部分输入法/工具） | 唤醒不可用 | 注册失败检测 + 托盘降级入口 + 设置改键（P2 前可用 `settings.json` 手改） |
 | 7.3 | 无边框窗口边缘缩放手感差（drag 区吞掉热区） | 交互体验 | 保留 8px 边缘 `no-drag` + Electron 原生 resizable；不达预期再上 `WM_NCHITTEST` 消息处理 |
 | 7.4 | 全屏独占应用（全屏游戏/视频）下置顶失效 | 钉住承诺打折 | 已知限制写入文档；screen-saver 级别已尽量覆盖非独占全屏 |
 | 7.9 | **WSLg 开发环境下置顶不可验证**：X11 层 alwaysOnTop 状态不传导到 Windows 侧窗口 Z 序，WSLg 窗口对 Windows 原生应用永远是普通层级 | 开发者在 WSL 中误判钉住功能失效 | 钉住/遮挡类用例（TC-M2-01/02 等）必须在 Windows 真机验收；进程内断言（isAlwaysOnTop）仅验证调用生效，不验证显示层 Z 序 |
@@ -452,7 +458,7 @@ npm install --no-audit --no-fund
 
 | 阶段 | 内容 | 交付物 |
 | --- | --- | --- |
-| M0 骨架（~3d） | electron-vite 工程搭建、无边框窗口、标题栏/托盘、`Ctrl+Q` toggle、钉住置顶、窗口状态持久化、IPC 骨架与安全基线 | 可唤醒可钉住的面板壳 |
+| M0 骨架（~3d） | electron-vite 工程搭建、无边框窗口、标题栏/托盘、`Ctrl+Shift+Q` toggle、钉住置顶、窗口状态持久化、IPC 骨架与安全基线 | 可唤醒可钉住的面板壳 |
 | M1 编辑与文件（~5d） | TipTap 集成、md 序列化规则、表格、纯文本模式、多标签、打开/保存（原子写+另存为）、草稿暂存恢复、`app-file://` 协议 | PRD v0.1 MVP 主体 |
 | M2 富文本完整版（~3d） | Underline/TextStyle/Color/FontSize/Highlight、浮动格式栏、清除格式、HTML 内嵌序列化收敛 | M7 完成 |
 | M3 涂鸦（~4d） | 覆盖画布与工具条、六种工具、撤销重做、PNG+JSON 落盘、Doodle Node、双击再编辑、未命名文档资产迁移 | M8 完成 |
