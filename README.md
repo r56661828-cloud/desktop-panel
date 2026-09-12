@@ -10,6 +10,9 @@
 | [技术方案](docs/TECH-DESIGN.md) | 技术选型与版本策略、进程架构、核心模块设计、IPC 契约、脚手架步骤 |
 | [测试用例方案](docs/TEST-CASES.md) | 测试分层策略、功能用例、可靠性/性能/兼容性专项、冒烟集 |
 | [打包部署](docs/DEPLOY.md) | Windows 产物（zip 绿色版/NSIS 安装包）、镜像加速、部署自检清单、已知限制 |
+| [签名与开源发布](docs/SIGNING.md) | SignPath 接入与发布行动清单 |
+| [在线更新评审](docs/UPDATE-PLAN.md) | 自动更新需求评审、决策记录（Q1–Q4） |
+| [在线更新技术方案](docs/TECH-DESIGN-UPDATE.md) | electron-updater 架构、状态机、IPC 契约、CI 与发布流程 |
 
 ## 核心特性
 
