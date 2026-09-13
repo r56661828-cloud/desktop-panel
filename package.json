@@ -1,6 +1,6 @@
 {
   "name": "desktop-panel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "快捷键唤醒、可钉住置顶的桌面速记面板",
   "main": "./out/main/index.js",
   "author": "desktop-panel",
@@ -104,5 +104,6 @@
     "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": "github:r56661828-cloud/desktop-panel"
 }

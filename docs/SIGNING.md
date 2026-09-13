@@ -2,10 +2,11 @@
 
 | 项 | 内容 |
 | --- | --- |
-| 文档版本 | v0.1 |
-| 撰写日期 | 2026-09-12 |
-| 适用版本 | v0.1.0（Electron 44 / electron-builder 26.15.3） |
+| 文档版本 | v0.2 |
+| 撰写日期 | 2026-09-12（v0.2 更新于 2026-09-13） |
+| 适用版本 | v0.1.1（Electron 44 / electron-builder 26.15.3） |
 | 结论 | 走开源路线，申请 **SignPath Foundation 免费代码签名**，GitHub 主仓发布 + Gitee 镜像分发 |
+| 仓库 | https://github.com/r56661828-cloud/desktop-panel （公开、MIT、默认分支 main） |
 
 ---
 
@@ -24,10 +25,10 @@
 
 | 审核要求 | 我方动作 | 状态 |
 | --- | --- | --- |
-| OSI 认可的开源许可证 | 加 `LICENSE`（推荐 MIT，简洁；Apache-2.0 亦可）；`package.json` 补 `"license": "MIT"` | ⏳ 待做 |
-| 公开源码仓库 | 建 **GitHub 公开仓库**并 push（Gitee 不受理申请） | ⏳ git 已提交（a98b3bf），待建远端仓 |
-| 产物免费分发 | GitHub Releases 免费下载 | ⏳ 随 CI 建立 |
-| 项目活跃维护 | 提交历史、多个 Release、完善 README（截图/构建说明/changelog）——审核人工看成熟度 | ⏳ 持续 |
+| OSI 认可的开源许可证 | `LICENSE`（GitHub 生成，MIT）+ `package.json` `"license": "MIT"` | ✅ 2026-09-13 |
+| 公开源码仓库 | GitHub 公开仓库已建并推送全部历史（提交身份已匿名化：用户名 + noreply 邮箱） | ✅ 2026-09-13 |
+| 产物免费分发 | GitHub Releases 免费下载 | ✅ 随 CI 建立（首个 Release v0.1.1） |
+| 项目活跃维护 | 提交历史、多个 Release、完善 README（截图/构建说明/changelog）——审核人工看成熟度 | ✅ 持续（7+ 提交、在线更新等功能迭代） |
 
 ## 3. 申请步骤
 
@@ -38,6 +39,8 @@
 5. 建 **CI 用户**并生成 API Token（存 GitHub Secrets）；建议同时安装 **SignPath GitHub App**（Trusted Build：`release-policy` 可绑定"只签来自本仓库 Actions 的构建请求"，token 泄露也无法异地提交）。
 
 ## 4. CI 发布流水线（GitHub Actions）
+
+**已落地**：`.github/workflows/release.yml` 已随仓库推送（打 tag `v*` 或手动触发 → windows-latest 构建 → typecheck/单测 → 打包 → 无密钥自动跳过签名的占位步 → `--publish always` 发 Release）。下面为设计时骨架，**实际以仓库内 workflow 为准**：
 
 `.github/workflows/release.yml` 骨架：
 
@@ -148,9 +151,10 @@ module.exports = async function sign(task) {
 
 ## 9. 行动清单（按序）
 
-1. ✅ git 首次提交（已完成 a98b3bf）→ 建 GitHub 公开仓库并 push；
-2. 加 `LICENSE`（MIT）+ `package.json` 补 `"license": "MIT"`；
-3. README 补英文简介/截图/构建说明（审核素材）；
-4. 打 tag `v0.1.0` 跑通**未签名** Release 流水线（阶段 4 的 yml 去掉签名 env 即可先行）；
-5. 提交 SignPath 申请，等待期间完善 CI 与文档；
-6. 授权下来后接 `scripts/sign.js` + 两个 Secrets（半天级），发首个签名版 v0.1.1。
+1. ✅ git 首次提交 → 建 GitHub 公开仓库并 push（2026-09-13 完成，含 v0.1.1 UI 重构与在线更新功能；提交身份匿名化）；
+2. ✅ `LICENSE`（MIT，GitHub 生成）+ `package.json` 补 `"license": "MIT"` 与 `"repository"` 字段（2026-09-13）；
+3. ✅ README 完善（特性列表/构建说明，随仓库推送）；
+4. ✅ 推送 tag `v0.1.1` 跑通 Release 流水线（2026-09-13 验证；顺带修复 electron-updater 打包缺依赖问题）；
+5. ⏳ **提交 SignPath 申请**（前置已全部满足，[signpath.org](https://signpath.org/) 提交；等待审核期间无阻塞事项）；
+6. ⏳ 授权下来后接 `scripts/sign.js`（见 5.2 骨架）+ 配置 4 个 Secrets（`SIGNPATH_API_TOKEN` / `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_PROJECT_ID` / `SIGNPATH_SIGNING_POLICY`），把 workflow 占位签名步改为真实签名（半天级），发首个签名版；
+7. ⏳ Gitee 镜像仓（源码同步 + Release 产物手动/脚本上传，见第 7 节）。
