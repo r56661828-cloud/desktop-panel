@@ -1,5 +1,5 @@
 # 发布流水线：打 tag（v*）或手动触发 → Windows 打包 → 签名 → 发布 GitHub Release
-# 产物清单缺一不可（electron-updater 依赖）：Setup.exe + .blockmap + latest.yml
+# 产物清单缺一不可（electron-updater 依赖）：Setup.exe + .blockmap + latest.yml；另发 zip 绿色版
 # 前提：GitHub 公开仓库已建（docs/TECH-DESIGN-UPDATE.md §6）；签名前提见 docs/SIGNING.md
 name: release
 
@@ -47,6 +47,6 @@ jobs:
           Write-Host 'SignPath signing step - configure per docs/SIGNING.md'
 
       - name: Publish release
-        run: npx electron-builder --win nsis --publish always
+        run: npx electron-builder --win nsis zip --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

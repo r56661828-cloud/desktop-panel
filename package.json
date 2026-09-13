@@ -1,6 +1,6 @@
 {
   "name": "desktop-panel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "快捷键唤醒、可钉住置顶的桌面速记面板",
   "main": "./out/main/index.js",
   "author": "desktop-panel",

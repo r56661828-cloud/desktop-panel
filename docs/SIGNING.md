@@ -64,9 +64,9 @@ distributed for free via GitHub Releases.
 ```
 
 **可选加分项**（来自已通过项目的经验，提高审核通过率，非必需）：
-- 在仓库放一份**签名政策**说明（什么产物会被签、由 CI 签、声明 "Free code signing provided by SignPath.io, certificate by SignPath Foundation"）——可直接引用本文档；
-- `CODE_OF_CONDUCT.md`（Contributor Covenant 模板即可）；
-- README 里已有清晰的"是什么/去哪下载/如何构建"结构 ✅（已满足）。
+- ✅ 在仓库放一份**签名政策**说明 → 已建 [docs/CODE-SIGNING-POLICY.md](CODE-SIGNING-POLICY.md)（英文，申请表里可附此链接）；
+- ✅ `CODE_OF_CONDUCT.md`（Contributor Covenant v2.1，已建，联系方式用 GitHub Issues 保持匿名）；
+- ✅ README 里已有清晰的"是什么/去哪下载/如何构建"结构。
 
 ## 4. CI 发布流水线（GitHub Actions）
 
