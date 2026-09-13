@@ -22,7 +22,7 @@
     "artifactName": "DesktopPanel-${version}-${arch}.${ext}",
     "publish": {
       "provider": "github",
-      "owner": "you-renjun",
+      "owner": "r56661828-cloud",
       "repo": "desktop-panel",
       "releaseType": "release"
     },
