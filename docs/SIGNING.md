@@ -38,35 +38,60 @@
 4. 在 SignPath 建 Project（slug 建议 `desktop-panel`）+ 两条签名策略：`test-policy` / `release-policy`；
 5. 建 **CI 用户**并生成 API Token（存 GitHub Secrets）；建议同时安装 **SignPath GitHub App**（Trusted Build：`release-policy` 可绑定"只签来自本仓库 Actions 的构建请求"，token 泄露也无法异地提交）。
 
-### 3.1 申请表抄写内容（2026-09-13 整理）
+### 3.1 申请表抄写内容（以 2026-09-13 实际表单截图为准）
 
-> 字段措辞以 [signpath.org/apply](https://signpath.org/apply) 实际页面为准（表单为动态加载，措辞可能微调）；下表"值"与措辞无关，直接复制即可。**建议用英文填写**（审核方为英文沟通）。
+> 字段与提示语来自 signpath.org/apply 实际页面（含必填标记 `*`）。**建议英文填写**；`*` 为必填。
 
-| 表单项 | 抄写内容 |
-| --- | --- |
-| Project / Repository URL | `https://github.com/r56661828-cloud/desktop-panel` |
-| License | `MIT`（可附链接：`https://github.com/r56661828-cloud/desktop-panel/blob/main/LICENSE`） |
-| Download / Release URL | `https://github.com/r56661828-cloud/desktop-panel/releases` |
-| Project description（英文，可直接粘贴） | 见下方描述文本 |
-| Name（如有） | `r56661828-cloud`（与仓库身份一致；此栏仅 SignPath 审核可见，不会公开） |
-| Email（如有） | 用可收信的真实邮箱（审核往来靠邮件；仅 SignPath 可见，不公开。介意实名可另注册一个专用邮箱） |
+| 表单项 | 必填 | 抄写内容 |
+| --- | --- | --- |
+| Project Name | * | `Desktop Panel` |
+| Repository URL | * | `https://github.com/r56661828-cloud/desktop-panel` |
+| Homepage URL | * | `https://github.com/r56661828-cloud/desktop-panel`（提示允许直接用仓库页） |
+| Download URL | | `https://github.com/r56661828-cloud/desktop-panel#下载-download`（⚠️ 该页面**必须提及 SignPath Foundation 签名**——README 下载区已含声明，满足要求） |
+| Privacy Policy URL | | `https://github.com/r56661828-cloud/desktop-panel/blob/main/docs/PRIVACY.md`（声明"不收集数据"，见下） |
+| Wikipedia URL | | 留空 |
+| Tagline | * | `Keyboard-summoned, always-on-top quick note panel for Windows.`（一句英文，会公开显示在 Foundation 网站） |
+| Description | * | 见下方粘贴文本（提示要求：短段落、勿列版本特性/依赖） |
+| Reputation | * | 见下方粘贴文本（⚠️ 最关键项：需证明项目"被广泛使用或可信"；我们是新项目，采取诚实路线，见说明） |
+| Maintainer Type | | 下拉选个人开发者对应项（如 Individual / Independent developer） |
+| Build System | | `GitHub Actions` |
+| First Name / Last Name | * | `Desktop` / `Panel`（仅 SignPath 内部账号可见，证书主体是 SignPath Foundation + 项目名、不含个人姓名；介意间可填真实拼音，二选一） |
+| Email | * | 可收信的真实邮箱（仅 SignPath 可见，审核往来靠邮件） |
+| Company Name | | 留空 |
+| Primary Discovery Channel | * | 如实选（下拉选项以页面为准，如搜索引擎 / AI 推荐） |
+| Please specify the exact source | | 可留空 |
+| 复选框 | | ✅ 必勾：Code of Conduct 同意；✅ 必勾：个人数据存储同意；⬜ 营销邮件可勾可不勾 |
 
-**Project description 粘贴文本**（说明"是什么、给谁用、签什么产物、如何构建"四要素）：
+**Description 粘贴文本**：
 
 ```text
-Desktop Panel is a Windows desktop quick-note application built with Electron:
-a scratchpad panel summoned by a global hotkey (Ctrl+Shift+Q) that can stay
-always-on-top for jotting notes while working in other apps. It offers Markdown
-editing (TipTap), a doodle/sketch layer, tabbed notes, and online updates.
-Artifacts to sign: Windows NSIS installer (.exe) and portable build (.zip),
-built automatically by public GitHub Actions CI from the repository source and
-distributed for free via GitHub Releases.
+Desktop Panel is a Windows desktop quick-note application: a lightweight
+scratchpad panel summoned with a global hotkey that can stay always-on-top,
+for capturing thoughts without leaving the current task. Notes are stored
+locally as plain files and support Markdown formatting and simple sketching.
+It ships as a per-user installer and a portable build, is built automatically
+by public CI from the repository source, and is distributed for free via
+GitHub Releases.
 ```
 
-**可选加分项**（来自已通过项目的经验，提高审核通过率，非必需）：
-- ✅ 在仓库放一份**签名政策**说明 → 已建 [docs/CODE-SIGNING-POLICY.md](CODE-SIGNING-POLICY.md)（英文，申请表里可附此链接）；
-- ✅ `CODE_OF_CONDUCT.md`（Contributor Covenant v2.1，已建，联系方式用 GitHub Issues 保持匿名）；
-- ✅ README 里已有清晰的"是什么/去哪下载/如何构建"结构。
+**Reputation 粘贴文本**（新项目的诚实路线——不虚构使用量，展示工程成熟度）：
+
+```text
+Desktop Panel is a new project (public repository created 2026-09) and does not
+yet have media coverage or third-party articles. Current trust signals:
+- Repository: https://github.com/r56661828-cloud/desktop-panel (public, MIT,
+  complete commit history since the first commit)
+- Engineering maturity: public CI (GitHub Actions) runs typecheck, unit tests
+  and Windows builds; every tag produces a published GitHub Release; unit and
+  E2E smoke tests are part of the repository; comprehensive docs (PRD,
+  technical design, test-case plan, deployment guide, code-signing policy)
+- Distribution: free downloads via GitHub Releases (installer + portable zip),
+  download statistics visible on the Releases page
+The project is under active development, and we request consideration for the
+free open-source signing program at this early stage.
+```
+
+> **关于 Reputation 的策略说明**：如果希望更有把握，也可以先运营一段时间再申请（攒 star/下载量/写一篇介绍文章），审核主要看这一项。两种都合规，自行权衡。
 
 ## 4. CI 发布流水线（GitHub Actions）
 
@@ -185,6 +210,6 @@ module.exports = async function sign(task) {
 2. ✅ `LICENSE`（MIT，GitHub 生成）+ `package.json` 补 `"license": "MIT"` 与 `"repository"` 字段（2026-09-13）；
 3. ✅ README 完善（特性列表/构建说明，随仓库推送）；
 4. ✅ 推送 tag `v0.1.1` 跑通 Release 流水线（2026-09-13 验证通过：[Release v0.1.1](https://github.com/r56661828-cloud/desktop-panel/releases/tag/v0.1.1) 已含 Setup.exe + blockmap + latest.yml；期间修复两处：electron-updater 打进主进程产物、build.publish.owner 改为实际用户名）；
-5. ⏳ **提交 SignPath 申请**（前置已全部满足，[signpath.org](https://signpath.org/) 提交；等待审核期间无阻塞事项）；
+5. ⏳ **提交 SignPath 申请**——申请材料已全部就绪（前置四项 ✅；表单抄写见 3.1；支撑材料齐备：README 下载区含 SignPath Foundation 声明 ✅、[docs/PRIVACY.md](PRIVACY.md) ✅、[docs/CODE-SIGNING-POLICY.md](CODE-SIGNING-POLICY.md) ✅、CODE_OF_CONDUCT.md ✅）；唯一弱项是 Reputation（新项目无媒体/使用量，3.1 提供了诚实文案，或选择先运营再申请）；
 6. ⏳ 授权下来后接 `scripts/sign.js`（见 5.2 骨架）+ 配置 4 个 Secrets（`SIGNPATH_API_TOKEN` / `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_PROJECT_ID` / `SIGNPATH_SIGNING_POLICY`），把 workflow 占位签名步改为真实签名（半天级），发首个签名版；
 7. ⏳ Gitee 镜像仓（源码同步 + Release 产物手动/脚本上传，见第 7 节）。

@@ -12,6 +12,7 @@
 | [打包部署](docs/DEPLOY.md) | Windows 产物（zip 绿色版/NSIS 安装包）、镜像加速、部署自检清单、已知限制 |
 | [签名与开源发布](docs/SIGNING.md) | SignPath 接入与发布行动清单 |
 | [签名政策](docs/CODE-SIGNING-POLICY.md) | 代码签名政策（SignPath.io / SignPath Foundation） |
+| [隐私政策](docs/PRIVACY.md) | 数据本地存储、无收集、更新检查的网络访问说明 |
 | [行为准则](CODE_OF_CONDUCT.md) | Contributor Covenant v2.1 |
 | [在线更新评审](docs/UPDATE-PLAN.md) | 自动更新需求评审、决策记录（Q1–Q4） |
 | [在线更新技术方案](docs/TECH-DESIGN-UPDATE.md) | electron-updater 架构、状态机、IPC 契约、CI 与发布流程 |
@@ -26,6 +27,16 @@
 - 涂鸦（曲线/直线/箭头/矩形/圆）：PNG + 矢量 JSON 双文件落盘，双击可再编辑
 - 草稿自动暂存与崩溃恢复，原子写盘
 - 在线更新（安装版）：检查/静默下载/确认升级/更新说明页（见 docs/TECH-DESIGN-UPDATE.md）
+
+## 下载 Download
+
+| 渠道 | 产物 |
+| --- | --- |
+| [GitHub Releases](https://github.com/r56661828-cloud/desktop-panel/releases) | 安装版 `DesktopPanel-Setup-*.exe`（推荐）· 绿色版 `DesktopPanel-*-x64.zip`（解压即用） |
+
+均由公共 CI（GitHub Actions）从仓库源码自动构建，更新包元数据（`latest.yml`/`.blockmap`）随 Release 发布，供应用内自动更新使用。
+
+> Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org)（免费代码签名由 SignPath Foundation 提供，签名接入进行中）。签名政策见 [docs/CODE-SIGNING-POLICY.md](docs/CODE-SIGNING-POLICY.md)。
 
 ## 技术栈
 
