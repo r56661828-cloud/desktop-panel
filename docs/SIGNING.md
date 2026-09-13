@@ -47,7 +47,7 @@
 | Project Name | * | `Desktop Panel` |
 | Repository URL | * | `https://github.com/r56661828-cloud/desktop-panel` |
 | Homepage URL | * | `https://github.com/r56661828-cloud/desktop-panel`（提示允许直接用仓库页） |
-| Download URL | | `https://github.com/r56661828-cloud/desktop-panel#下载-download`（⚠️ 该页面**必须提及 SignPath Foundation 签名**——README 下载区已含声明，满足要求） |
+| Download URL | | `https://github.com/r56661828-cloud/desktop-panel`（⚠️ 要求下载页**必须提及 SignPath Foundation 签名**——README 下载区已含声明，满足要求。用纯 ASCII 的仓库主页链接最稳；中文锚点 `#下载-download` 在浏览器可用，但表单校验对非 ASCII 的行为未知，不冒险） |
 | Privacy Policy URL | | `https://github.com/r56661828-cloud/desktop-panel/blob/main/docs/PRIVACY.md`（声明"不收集数据"，见下） |
 | Wikipedia URL | | 留空 |
 | Tagline | * | `Keyboard-summoned, always-on-top quick note panel for Windows.`（一句英文，会公开显示在 Foundation 网站） |
