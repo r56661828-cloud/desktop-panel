@@ -70,7 +70,7 @@ npm run dist
 > 前置：先在 Windows 机器执行 2.2 打出 `DesktopPanel-Setup-0.1.0.exe`（或将来在 WSL 安装 wine 后交叉打包）。
 
 1. 拷贝 `DesktopPanel-Setup-0.1.0.exe` 到 Windows 机器（U 盘/网络传输均可）；
-2. 双击运行 → 选择安装目录 → 安装（默认装到 `%LOCALAPPDATA%\Programs\Desktop Panel\`，仅当前用户，无需管理员）；
+2. 双击运行 → 选择安装目录 → 安装（默认装到 `%LOCALAPPDATA%\Programs\Desktop Panel\`，仅当前用户，无需管理员）。**自定义路径说明**：目录页原样显示所选路径，安装器在落盘前自动检查——所选路径不含应用名时自动追加 `\Desktop Panel` 子目录（如选 `D:\Apps\` 实际装到 `D:\Apps\Desktop Panel\`）；但若所选路径恰好包含 `Desktop Panel` 字样则不追加、直接装入该目录。快捷方式无询问页，按打包配置静默创建（`createDesktopShortcut`/`createStartMenuShortcut`）；
 3. 安装完成自动启动；桌面与开始菜单生成「Desktop Panel」快捷方式；
 4. **首次运行提示**：未做代码签名，会被 Windows 11 智能应用控制直接拦截（无「仍要运行」入口），需先关闭 SAC——见 5.1 的实测处理与代价说明。
 
