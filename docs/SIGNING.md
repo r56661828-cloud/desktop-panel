@@ -33,10 +33,40 @@
 ## 3. 申请步骤
 
 1. 访问 [signpath.org](https://signpath.org/) →「Free Code Signing for Open Source」→ Apply（无需个人身份证明，以仓库为准）；
-2. 填写：项目名、GitHub 仓库 URL、许可证、项目描述、下载页；
+2. 填写：项目名、GitHub 仓库 URL、许可证、项目描述、下载页（**可直接抄写内容见 3.1**）；
 3. 通过审核（数天到数周）后在 [signpath.io](https://signpath.io) 获得 **Organization**（证书由 Foundation 代持）；
 4. 在 SignPath 建 Project（slug 建议 `desktop-panel`）+ 两条签名策略：`test-policy` / `release-policy`；
 5. 建 **CI 用户**并生成 API Token（存 GitHub Secrets）；建议同时安装 **SignPath GitHub App**（Trusted Build：`release-policy` 可绑定"只签来自本仓库 Actions 的构建请求"，token 泄露也无法异地提交）。
+
+### 3.1 申请表抄写内容（2026-09-13 整理）
+
+> 字段措辞以 [signpath.org/apply](https://signpath.org/apply) 实际页面为准（表单为动态加载，措辞可能微调）；下表"值"与措辞无关，直接复制即可。**建议用英文填写**（审核方为英文沟通）。
+
+| 表单项 | 抄写内容 |
+| --- | --- |
+| Project / Repository URL | `https://github.com/r56661828-cloud/desktop-panel` |
+| License | `MIT`（可附链接：`https://github.com/r56661828-cloud/desktop-panel/blob/main/LICENSE`） |
+| Download / Release URL | `https://github.com/r56661828-cloud/desktop-panel/releases` |
+| Project description（英文，可直接粘贴） | 见下方描述文本 |
+| Name（如有） | `r56661828-cloud`（与仓库身份一致；此栏仅 SignPath 审核可见，不会公开） |
+| Email（如有） | 用可收信的真实邮箱（审核往来靠邮件；仅 SignPath 可见，不公开。介意实名可另注册一个专用邮箱） |
+
+**Project description 粘贴文本**（说明"是什么、给谁用、签什么产物、如何构建"四要素）：
+
+```text
+Desktop Panel is a Windows desktop quick-note application built with Electron:
+a scratchpad panel summoned by a global hotkey (Ctrl+Shift+Q) that can stay
+always-on-top for jotting notes while working in other apps. It offers Markdown
+editing (TipTap), a doodle/sketch layer, tabbed notes, and online updates.
+Artifacts to sign: Windows NSIS installer (.exe) and portable build (.zip),
+built automatically by public GitHub Actions CI from the repository source and
+distributed for free via GitHub Releases.
+```
+
+**可选加分项**（来自已通过项目的经验，提高审核通过率，非必需）：
+- 在仓库放一份**签名政策**说明（什么产物会被签、由 CI 签、声明 "Free code signing provided by SignPath.io, certificate by SignPath Foundation"）——可直接引用本文档；
+- `CODE_OF_CONDUCT.md`（Contributor Covenant 模板即可）；
+- README 里已有清晰的"是什么/去哪下载/如何构建"结构 ✅（已满足）。
 
 ## 4. CI 发布流水线（GitHub Actions）
 
