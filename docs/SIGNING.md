@@ -154,7 +154,7 @@ module.exports = async function sign(task) {
 1. ✅ git 首次提交 → 建 GitHub 公开仓库并 push（2026-09-13 完成，含 v0.1.1 UI 重构与在线更新功能；提交身份匿名化）；
 2. ✅ `LICENSE`（MIT，GitHub 生成）+ `package.json` 补 `"license": "MIT"` 与 `"repository"` 字段（2026-09-13）；
 3. ✅ README 完善（特性列表/构建说明，随仓库推送）；
-4. ✅ 推送 tag `v0.1.1` 跑通 Release 流水线（2026-09-13 验证；顺带修复 electron-updater 打包缺依赖问题）；
+4. ✅ 推送 tag `v0.1.1` 跑通 Release 流水线（2026-09-13 验证通过：[Release v0.1.1](https://github.com/r56661828-cloud/desktop-panel/releases/tag/v0.1.1) 已含 Setup.exe + blockmap + latest.yml；期间修复两处：electron-updater 打进主进程产物、build.publish.owner 改为实际用户名）；
 5. ⏳ **提交 SignPath 申请**（前置已全部满足，[signpath.org](https://signpath.org/) 提交；等待审核期间无阻塞事项）；
 6. ⏳ 授权下来后接 `scripts/sign.js`（见 5.2 骨架）+ 配置 4 个 Secrets（`SIGNPATH_API_TOKEN` / `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_PROJECT_ID` / `SIGNPATH_SIGNING_POLICY`），把 workflow 占位签名步改为真实签名（半天级），发首个签名版；
 7. ⏳ Gitee 镜像仓（源码同步 + Release 产物手动/脚本上传，见第 7 节）。
