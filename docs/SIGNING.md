@@ -93,6 +93,28 @@ free open-source signing program at this early stage.
 
 > **关于 Reputation 的策略说明**：如果希望更有把握，也可以先运营一段时间再申请（攒 star/下载量/写一篇介绍文章），审核主要看这一项。两种都合规，自行权衡。
 
+### 3.2 申请结果（2026-09-17：被拒）与重申计划
+
+**结果**：2026-09-13 提交，2026-09-17 收到拒信（Phillip 署名）。**拒因与预判一致——公开可见度不足，非质量问题**（原话："This isn't a judgment on the quality or potential of your work, it's purely about the level of public visibility the Foundation program requires"）。
+
+**Foundation 明示的评估信号**（重申时须全部或多数具备）：
+- 社区采用：GitHub stars、forks、**外部贡献者**；
+- 外部文章与独立讨论：博客文章、Reddit / Stack Overflow / YouTube 等；
+- 机构背书；
+- 持续的活动与参与度证据。
+
+**明确欢迎重新申请**（"you're very welcome to reapply once it has gained broader recognition"）。
+
+**重申前运营清单（诚实运营，不刷量）**：
+1. 保持发布节奏：v0.1.x → v0.2 按计划推进，Release 记录连续；
+2. 写 2–3 篇介绍文章：中文（知乎/掘金「用 Electron 做一个快捷键速记面板」角度）+ 英文（dev.to / Medium），文中自然带回仓库链接；
+3. 社区分享：V2EX 分享创造节点、Reddit r/Electron、Show HN——各一次，认真回复评论；
+4. Stack Overflow：在 electron-builder / electron-updater 相关问题下输出高质量回答；
+5. 邀请 1–2 位外部贡献者（哪怕是文档/翻译改进）；
+6. 上述动作建议跨度 ≥ 1 个月，形成"持续活动"曲线后重申，申请信中列出这些链接。
+
+**付费备选核实（2026-09-17）**：SignPath 付费 Starter **$500/年起**（EV 证书以组织名义签发，个人无公司不适用）；Certum 个人开源证书约几十欧/年，但**证书主体含个人实名、公开可见**，与本项目匿名原则冲突。结论：维持免费路线（运营重申）。
+
 ## 4. CI 发布流水线（GitHub Actions）
 
 **已落地**：`.github/workflows/release.yml` 已随仓库推送（打 tag `v*` 或手动触发 → windows-latest 构建 → typecheck/单测 → 打包 → 无密钥自动跳过签名的占位步 → `--publish always` 发 Release）。下面为设计时骨架，**实际以仓库内 workflow 为准**：
@@ -210,6 +232,6 @@ module.exports = async function sign(task) {
 2. ✅ `LICENSE`（MIT，GitHub 生成）+ `package.json` 补 `"license": "MIT"` 与 `"repository"` 字段（2026-09-13）；
 3. ✅ README 完善（特性列表/构建说明，随仓库推送）；
 4. ✅ 推送 tag `v0.1.1` 跑通 Release 流水线（2026-09-13 验证通过：[Release v0.1.1](https://github.com/r56661828-cloud/desktop-panel/releases/tag/v0.1.1) 已含 Setup.exe + blockmap + latest.yml；期间修复两处：electron-updater 打进主进程产物、build.publish.owner 改为实际用户名）；
-5. ⏳ **提交 SignPath 申请**——申请材料已全部就绪（前置四项 ✅；表单抄写见 3.1；支撑材料齐备：README 下载区含 SignPath Foundation 声明 ✅、[docs/PRIVACY.md](PRIVACY.md) ✅、[docs/CODE-SIGNING-POLICY.md](CODE-SIGNING-POLICY.md) ✅、CODE_OF_CONDUCT.md ✅）；唯一弱项是 Reputation（新项目无媒体/使用量，3.1 提供了诚实文案，或选择先运营再申请）；
+5. ❌ **SignPath Foundation 申请：2026-09-17 被拒**（公开可见度不足，材料本身无问题；拒因分析、评估信号清单与重申前运营计划见 3.2——明确欢迎重申，预计运营 1–3 个月后材料显著改善）；
 6. ⏳ 授权下来后接 `scripts/sign.js`（见 5.2 骨架）+ 配置 4 个 Secrets（`SIGNPATH_API_TOKEN` / `SIGNPATH_ORGANIZATION_ID` / `SIGNPATH_PROJECT_ID` / `SIGNPATH_SIGNING_POLICY`），把 workflow 占位签名步改为真实签名（半天级），发首个签名版；
 7. ⏳ Gitee 镜像仓（源码同步 + Release 产物手动/脚本上传，见第 7 节）。
