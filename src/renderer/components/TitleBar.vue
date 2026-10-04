@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { Brush, FolderOpen, Minus, Pin, PinOff, Save, Table2, X } from '@lucide/vue'
+import { onMounted, ref, computed } from 'vue'
+import { Brush, FolderOpen, Minus, Pin, PinOff, Save, Table2, X, Monitor, Moon, Sun } from '@lucide/vue'
 import { useTabsStore } from '@/stores/tabs'
 import { useUiStore } from '@/stores/ui'
 import { useUpdateStore } from '@/stores/update'
+import { useThemeStore } from '@/stores/theme'
 import { editorRegistry } from '@/editor/editorRegistry'
 import TitleBarIcon from './TitleBarIcon.vue'
 
 const tabs = useTabsStore()
 const ui = useUiStore()
 const update = useUpdateStore()
+const theme = useThemeStore()
+const themeLabel = computed(() => (theme.preference === 'system' ? '跟随系统' : theme.preference === 'light' ? '浅色' : '深色'))
 
 const pinned = ref(false)
 
@@ -83,6 +86,13 @@ function closePanel(): void {
       </TitleBarIcon>
       <TitleBarIcon tooltip="保存（Ctrl+S）" testid="save-btn" @click="tabs.saveActive()">
         <template #icon><Save :size="15" /></template>
+      </TitleBarIcon>
+      <TitleBarIcon :tooltip="`主题：${themeLabel} · 点击切换`" testid="theme-btn" @click="theme.cycle()">
+        <template #icon>
+          <Monitor v-if="theme.preference === 'system'" :size="15" />
+          <Sun v-else-if="theme.preference === 'light'" :size="15" />
+          <Moon v-else :size="15" />
+        </template>
       </TitleBarIcon>
       <span class="mx-1 h-4 w-px bg-panel-border" />
       <!-- 在线更新入口（TECH-DESIGN-UPDATE §5.1）：仅 downloaded 可点击弹确认框 -->
