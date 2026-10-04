@@ -95,20 +95,22 @@ function closePanel(): void {
         </template>
       </TitleBarIcon>
       <span class="mx-1 h-4 w-px bg-panel-border" />
-      <!-- 在线更新入口（TECH-DESIGN-UPDATE §5.1）：仅 downloaded 可点击弹确认框 -->
-      <button
-        v-if="update.buttonLabel"
-        class="rounded-full px-2.5 py-1 text-xs font-medium"
-        :class="
-          update.buttonClickable
-            ? 'bg-panel-accent text-white hover:opacity-90'
-            : 'cursor-default bg-panel-bg2 text-panel-text2'
-        "
-        :data-testid="update.buttonClickable ? 'update-btn' : 'update-progress'"
-        @click="update.openConfirm()"
-      >
-        {{ update.buttonLabel }}
-      </button>
+      <Transition name="pill">
+        <!-- 在线更新入口（TECH-DESIGN-UPDATE §5.1）：仅 downloaded 可点击弹确认框 -->
+        <button
+          v-if="update.buttonLabel"
+          class="rounded-full px-2.5 py-1 text-xs font-medium"
+          :class="
+            update.buttonClickable
+              ? 'bg-panel-accent text-white hover:opacity-90'
+              : 'cursor-default bg-panel-bg2 text-panel-text2'
+          "
+          :data-testid="update.buttonClickable ? 'update-btn' : 'update-progress'"
+          @click="update.openConfirm()"
+        >
+          {{ update.buttonLabel }}
+        </button>
+      </Transition>
       <TitleBarIcon tooltip="最小化" testid="minimize-btn" @click="minimize">
         <template #icon><Minus :size="15" /></template>
       </TitleBarIcon>

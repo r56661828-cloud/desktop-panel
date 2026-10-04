@@ -107,7 +107,7 @@ function onFontSize(v: string | null): void {
   <div class="editor-wrap editor-card relative min-w-0 flex-1 overflow-y-auto rounded-xl border border-panel-border shadow-sm">
     <div
       v-if="toolbarVisible"
-      class="no-drag absolute z-20 flex items-center gap-0.5 rounded-[10px] border border-panel-border bg-panel-bg p-1 shadow-lg"
+      class="no-drag absolute z-20 flex items-center gap-0.5 rounded-[10px] border border-panel-border bg-panel-bg p-1 shadow-lg ui-anim-pop"
       :style="toolbarStyle"
     >
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">

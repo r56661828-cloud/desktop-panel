@@ -25,7 +25,7 @@ watch(
   <div class="relative flex min-h-0 flex-1 gap-0 bg-panel-bg p-1.5">
     <div
       v-if="tabs.activeTab?.conflict"
-      class="absolute left-3 right-3 top-3 z-30 flex items-center justify-between rounded-lg bg-amber-500/95 px-3 py-1.5 text-xs text-white shadow-md"
+      class="absolute left-3 right-3 top-3 z-30 flex items-center justify-between rounded-lg bg-amber-500/95 px-3 py-1.5 text-xs text-white shadow-md ui-anim-slide-down"
     >
       <span>文件已在磁盘上被修改</span>
       <span class="flex gap-2">

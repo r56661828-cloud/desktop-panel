@@ -11,11 +11,11 @@ function onAuxClick(e: MouseEvent, id: string): void {
 </script>
 
 <template>
-  <div class="flex h-9 shrink-0 items-end gap-1 overflow-x-auto bg-panel-bg px-1.5 pt-1">
+  <div class="flex h-9 shrink-0 items-end gap-1 overflow-x-auto bg-panel-bg px-1.5 pt-1 transition-colors">
     <div
       v-for="tab in tabs.tabs"
       :key="tab.id"
-      class="group relative flex max-w-44 shrink-0 cursor-pointer items-center gap-1.5 rounded-t-lg px-2.5 py-1.5 text-xs"
+      class="group relative flex max-w-44 shrink-0 cursor-pointer items-center gap-1.5 rounded-t-lg px-2.5 py-1.5 text-xs transition-colors"
       :class="
         tab.id === tabs.activeId
           ? 'bg-panel-card text-panel-text shadow-sm'
@@ -29,7 +29,7 @@ function onAuxClick(e: MouseEvent, id: string): void {
       <span v-if="tab.dirty" class="text-panel-accent">●</span>
       <!-- 关闭按钮常显（UI-PLAN P1-4），hover 仅做底色反馈 -->
       <button
-        class="ml-0.5 rounded p-0.5 text-panel-text2 hover:bg-panel-border hover:text-panel-text"
+        class="ml-0.5 rounded p-0.5 text-panel-text2 hover:bg-panel-border hover:text-panel-text transition-colors"
         title="关闭标签（Ctrl+W）"
         :data-testid="'tab-close-' + tab.fileName"
         @click.stop="void tabs.closeTab(tab.id)"
@@ -38,7 +38,7 @@ function onAuxClick(e: MouseEvent, id: string): void {
       </button>
       <span
         v-if="tab.id === tabs.activeId"
-        class="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-panel-accent"
+        class="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-panel-accent ui-anim-fade"
       />
     </div>
     <NTooltip trigger="hover" placement="bottom" :show-arrow="false">

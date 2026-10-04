@@ -15,7 +15,7 @@ defineProps<{
       <NButton
         quaternary
         size="tiny"
-        class="text-panel-text2"
+        class="text-panel-text2 transition-transform active:scale-90"
         :class="active ? 'opacity-100 !text-panel-accent' : ''"
         :data-testid="testid"
         @click="$emit('click')"
