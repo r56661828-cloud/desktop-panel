@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { darkTheme, NConfigProvider, NDialogProvider, NMessageProvider, type GlobalThemeOverrides } from 'naive-ui'
 import AppShell from './AppShell.vue'
+import { useThemeStore } from './stores/theme'
 
 // Naive UI 主题与 CSS 变量共享同一套暖纸色板（UI-PLAN §3）
 const overrides: GlobalThemeOverrides = {
@@ -14,12 +15,9 @@ const overrides: GlobalThemeOverrides = {
   }
 }
 
-const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
-const isDark = ref(darkQuery.matches)
-darkQuery.addEventListener('change', (e) => {
-  isDark.value = e.matches
-})
-const naiveTheme = computed(() => (isDark.value ? darkTheme : null))
+const theme = useThemeStore()
+const naiveTheme = computed(() => (theme.resolved === 'dark' ? darkTheme : null))
+onMounted(() => void theme.init())
 </script>
 
 <template>
