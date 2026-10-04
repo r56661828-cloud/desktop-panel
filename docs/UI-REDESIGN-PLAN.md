@@ -552,7 +552,7 @@ git commit -m "feat(ui): UpdateDialog 纳入统一弹框动效 + 涂鸦工具条
       }
     })
     .join('')
-  ok(settingsText.includes('"theme":"dark"'), '主题偏好持久化 settings.json')
+  ok(settingsText.includes('"theme": "dark"'), '主题偏好持久化 settings.json')
 ```
 
 - [ ] **Step 2: TEST-CASES.md 末尾追加**
