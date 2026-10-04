@@ -1,6 +1,7 @@
 import { app, ipcMain } from 'electron'
 import { IPC } from '@shared/ipc-channels'
 import { DEFAULT_SETTINGS, type DraftItem, type Settings } from '@shared/types'
+import { isThemePreference } from '@shared/theme'
 import type { WindowManager } from './window'
 import type { FileService } from './services/file'
 import type { DraftService } from './services/draft'
@@ -156,5 +157,6 @@ function sanitizeSettings(patch: Partial<Settings>): Partial<Settings> {
   if (Array.isArray(patch.recentFiles)) out.recentFiles = patch.recentFiles.filter((f) => typeof f === 'string').slice(0, 10)
   if (typeof patch.declinedVersion === 'string' || patch.declinedVersion === null) out.declinedVersion = patch.declinedVersion ?? null
   if (typeof patch.lastRunVersion === 'string') out.lastRunVersion = patch.lastRunVersion
+  if (isThemePreference(patch.theme)) out.theme = patch.theme
   return out
 }

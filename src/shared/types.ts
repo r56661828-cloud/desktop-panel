@@ -1,3 +1,5 @@
+import type { ThemePreference } from './theme'
+
 export type DocType = 'markdown' | 'plaintext'
 
 export interface OpenedFile {
@@ -30,6 +32,7 @@ export interface Settings {
   recentFiles: string[]
   declinedVersion: string | null // 更新确认框点「暂不」的版本（D1：该版本内不再自动下载/安装）
   lastRunVersion: string // 升级说明 tab 触发标记（≠ app.getVersion() 时开页一次）
+  theme: ThemePreference // 主题三态（UI-REDESIGN D2）：light/dark/system，默认 system
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,7 +42,8 @@ export const DEFAULT_SETTINGS: Settings = {
   lastSaveDir: null,
   recentFiles: [],
   declinedVersion: null,
-  lastRunVersion: ''
+  lastRunVersion: '',
+  theme: 'system'
 }
 
 // ---- 在线更新（docs/TECH-DESIGN-UPDATE.md） ----
