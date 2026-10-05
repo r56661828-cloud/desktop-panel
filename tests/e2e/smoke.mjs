@@ -57,6 +57,27 @@ try {
   const updateBtnCount = await win.locator('[data-testid="update-btn"], [data-testid="update-progress"]').count()
   ok(updateBtnCount === 0, 'dev 模式更新守卫生效（无更新按钮）')
 
+  // 主题三态切换（UI-REDESIGN）：默认 system 已解析为确定值；点击循环 system → light → dark
+  await win.waitForFunction(() => document.documentElement.dataset.theme === 'light' || document.documentElement.dataset.theme === 'dark')
+  const theme0 = await win.evaluate(() => document.documentElement.dataset.theme)
+  ok(theme0 === 'light' || theme0 === 'dark', `主题初始解析生效（data-theme=${theme0}）`)
+  await clickButton('theme-btn')
+  const theme1 = await win.evaluate(() => document.documentElement.dataset.theme)
+  ok(theme1 === 'light', '主题循环：system → light')
+  await clickButton('theme-btn')
+  const theme2 = await win.evaluate(() => document.documentElement.dataset.theme)
+  ok(theme2 === 'dark', '主题循环：light → dark')
+  const settingsText = ['desktop-panel', 'Electron']
+    .map((n) => {
+      try {
+        return fs.readFileSync(path.join(os.homedir(), '.config', n, 'settings.json'), 'utf-8')
+      } catch {
+        return ''
+      }
+    })
+    .join('')
+  ok(settingsText.includes('"theme": "dark"'), '主题偏好持久化 settings.json')
+
   // 未钉住时普通层级（D1）
   const beforePin = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop())
   ok(beforePin === false, '未钉住时非置顶')
