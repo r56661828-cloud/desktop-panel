@@ -333,7 +333,7 @@ defineExpose({ editingPngName })
       <button
         v-for="t in TOOLS"
         :key="t.key"
-        class="flex items-center justify-center rounded p-1 text-panel-text2"
+        class="flex items-center justify-center rounded p-1 text-panel-text2 transition-transform active:scale-90"
         :class="tool === t.key ? 'bg-panel-accent text-white' : 'hover:bg-panel-bg2'"
         :title="t.title"
         @click="tool = t.key"
@@ -344,7 +344,7 @@ defineExpose({ editingPngName })
       <span
         v-for="c in COLORS"
         :key="c"
-        class="h-4 w-4 cursor-pointer rounded-full border border-panel-border"
+        class="h-4 w-4 cursor-pointer rounded-full border border-panel-border transition-transform hover:scale-110"
         :style="{ background: c, outline: color === c ? '2px solid var(--panel-accent)' : 'none' }"
         @click="color = c"
       />
@@ -352,7 +352,7 @@ defineExpose({ editingPngName })
       <button
         v-for="s in SIZES"
         :key="s.key"
-        class="rounded px-1.5 py-0.5 text-xs"
+        class="rounded px-1.5 py-0.5 text-xs transition-colors"
         :class="sizeKey === s.key ? 'bg-panel-accent text-white' : 'text-panel-text2 hover:bg-panel-bg2'"
         :title="`画笔粗细：${s.label}`"
         @click="sizeKey = s.key"
@@ -360,10 +360,10 @@ defineExpose({ editingPngName })
         {{ s.label }}
       </button>
       <span class="mx-1 h-4 w-px bg-panel-border" />
-      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2" title="撤销 Ctrl+Z" @click="undo">
+      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2 transition-colors" title="撤销 Ctrl+Z" @click="undo">
         <Undo2 :size="14" />
       </button>
-      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2" title="重做 Ctrl+Y" @click="redo">
+      <button class="flex items-center rounded p-1 text-panel-text2 hover:bg-panel-bg2 transition-colors" title="重做 Ctrl+Y" @click="redo">
         <Redo2 :size="14" />
       </button>
       <span class="mx-1 h-4 w-px bg-panel-border" />
