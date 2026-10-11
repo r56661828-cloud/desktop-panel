@@ -2,7 +2,7 @@
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import type { ChainedCommands } from '@tiptap/core'
 import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import { Bold, Code, Eraser, Italic, Strikethrough, Underline as UnderlineIcon } from '@lucide/vue'
+import { Bold, Code, Eraser, Italic, PaintBucket, Strikethrough, Underline as UnderlineIcon } from '@lucide/vue'
 import { NButton, NColorPicker, NSelect, NTooltip } from 'naive-ui'
 import { buildExtensions } from './extensions'
 import { getMarkdown, setMarkdown } from './markdown'
@@ -33,6 +33,9 @@ const TOOLBAR_GAP = 6
 const TOOLBAR_EDGE = 4
 const FONT_OPTIONS = [12, 14, 16, 18, 20, 24].map((n) => ({ label: String(n), value: String(n) }))
 const COLORS = ['#111827', '#ff0000', '#ff9900', '#ffcc00', '#33cc33', '#2563eb', '#9333ea', '#ffffff']
+// 颜色按钮色条反映的当前选区颜色（updateToolbar 随事务刷新）
+const activeFontColor = ref('#111827')
+const activeBgColor = ref('transparent')
 
 onMounted(() => {
   const ed = new Editor({
@@ -112,6 +115,8 @@ function updateToolbar(): void {
     !doodle.active &&
     !props.tab.readonly
   if (!toolbarVisible.value) return
+  activeFontColor.value = (ed.getAttributes('textStyle').color as string) || '#111827'
+  activeBgColor.value = (ed.getAttributes('textStyle').backgroundColor as string) || 'transparent'
   try {
     const coords = ed.view.coordsAtPos(ed.state.selection.from)
     const wrap = ed.view.dom.closest('.editor-card')?.getBoundingClientRect()
@@ -220,24 +225,46 @@ function onFontSize(v: string | null): void {
         class="mx-0.5"
         @update:value="onFontSize"
       />
-      <NColorPicker
-        size="small"
-        :show-alpha="false"
-        :swatches="COLORS"
-        :default-value="'#111827'"
-        :style="{ width: '30px', height: '22px', flexShrink: 0 }"
-        title="字体颜色"
-        @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
-      />
-      <NColorPicker
-        size="small"
-        :show-alpha="false"
-        :swatches="['transparent', ...COLORS]"
-        :default-value="'transparent'"
-        :style="{ width: '30px', height: '22px', flexShrink: 0 }"
-        title="背景色"
-        @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
-      />
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <!-- 字体颜色：Word 式 A + 色条；隐形 NColorPicker 只负责点击与弹面板 -->
+          <div class="color-face-btn">
+            <NColorPicker
+              size="small"
+              :show-alpha="false"
+              :swatches="COLORS"
+              :default-value="'#111827'"
+              class="color-face-picker"
+              @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
+            />
+            <span class="color-face" aria-hidden="true">
+              <span class="color-face-letter">A</span>
+              <span class="color-face-bar" :style="{ background: activeFontColor }" />
+            </span>
+          </div>
+        </template>
+        字体颜色
+      </NTooltip>
+      <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
+        <template #trigger>
+          <!-- 背景色：Word 式填充图标 + 色条 -->
+          <div class="color-face-btn">
+            <NColorPicker
+              size="small"
+              :show-alpha="false"
+              :swatches="['transparent', ...COLORS]"
+              :default-value="'transparent'"
+              class="color-face-picker"
+              @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
+            />
+            <span class="color-face" aria-hidden="true">
+              <PaintBucket :size="12" />
+              <span class="color-face-bar" :style="{ background: activeBgColor }" />
+            </span>
+          </div>
+        </template>
+        背景色
+      </NTooltip>
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
           <NButton quaternary size="tiny" data-testid="clear-format" @click="clearFormat"><template #icon><Eraser :size="14" /></template></NButton>
@@ -260,3 +287,43 @@ function onFontSize(v: string | null): void {
     <EditorContent :editor="editor" class="tiptap-holder prose prose-sm dark:prose-invert max-w-none" />
   </div>
 </template>
+
+<style scoped>
+/* 颜色按钮面：上层自绘图标+色条，下层隐形 NColorPicker 负责点击与面板 */
+.color-face-btn {
+  position: relative;
+  width: 30px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+/* naive-ui 组件根上没有父级 scoped 属性，需 :deep 穿透 */
+.color-face-btn :deep(.color-face-picker) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.color-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.color-face-letter {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+.color-face-bar {
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+  border: 1px solid var(--panel-border);
+}
+</style>
