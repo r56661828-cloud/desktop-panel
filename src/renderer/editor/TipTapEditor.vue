@@ -26,6 +26,8 @@ const toolbarStyle = ref({ left: '0px', top: '0px' })
 const toolbarEl = ref<HTMLElement>()
 // 鼠标拖动选区过程中为 true：工具栏延迟到 mouseup 再显隐
 let mouseSelecting = false
+// 点击工具栏自动收起时记录的选区指纹：同一选区不因后续事务（如撤销）重新弹出
+let lastDismissedSelection: string | null = null
 let cleanupToolbarListeners: (() => void) | undefined
 const TOOLBAR_GAP = 6
 const TOOLBAR_EDGE = 4
@@ -49,6 +51,7 @@ onMounted(() => {
   // 工具栏出现时机：拖选过程中隐藏，鼠标松开且有选区时再弹出
   const onEditorMousedown = (): void => {
     mouseSelecting = true
+    lastDismissedSelection = null // 用户重新开始选择，解除自动收起的抑制
     updateToolbar()
   }
   const onWindowMouseup = (): void => {
@@ -97,8 +100,17 @@ function updateToolbar(): void {
     toolbarVisible.value = false
     return
   }
+  const selKey = `${ed.state.selection.from}:${ed.state.selection.to}`
+  if (lastDismissedSelection !== null && selKey !== lastDismissedSelection) {
+    lastDismissedSelection = null // 选区已变化，解除抑制
+  }
   toolbarVisible.value =
-    !mouseSelecting && ed.isFocused && !ed.state.selection.empty && !doodle.active && !props.tab.readonly
+    lastDismissedSelection === null &&
+    !mouseSelecting &&
+    ed.isFocused &&
+    !ed.state.selection.empty &&
+    !doodle.active &&
+    !props.tab.readonly
   if (!toolbarVisible.value) return
   try {
     const coords = ed.view.coordsAtPos(ed.state.selection.from)
@@ -139,17 +151,23 @@ function positionToolbar(): void {
   }
 }
 
-function cmd(fn: (c: ChainedCommands) => ChainedCommands): void {
-  if (!editor.value) return
-  fn(editor.value.chain().focus()).run()
+/** 执行命令；autoClose 时在事务提交（样式确定已生效）后收起工具栏 */
+function cmd(fn: (c: ChainedCommands) => ChainedCommands, autoClose = false): void {
+  const ed = editor.value
+  if (!ed) return
+  fn(ed.chain().focus()).run()
+  if (autoClose) {
+    toolbarVisible.value = false
+    lastDismissedSelection = `${ed.state.selection.from}:${ed.state.selection.to}`
+  }
 }
 
 function clearFormat(): void {
-  cmd((c) => c.unsetAllMarks().unsetFontSize().unsetColor().unsetBackgroundColor())
+  cmd((c) => c.unsetAllMarks().unsetFontSize().unsetColor().unsetBackgroundColor(), true)
 }
 
 function onFontSize(v: string | null): void {
-  cmd((c) => (v ? c.setFontSize(`${v}px`) : c.unsetFontSize()))
+  cmd((c) => (v ? c.setFontSize(`${v}px`) : c.unsetFontSize()), true)
 }
 </script>
 
@@ -165,31 +183,31 @@ function onFontSize(v: string | null): void {
     >
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleBold())"><template #icon><Bold :size="14" /></template></NButton>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleBold(), true)"><template #icon><Bold :size="14" /></template></NButton>
         </template>
         加粗 Ctrl+B
       </NTooltip>
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleItalic())"><template #icon><Italic :size="14" /></template></NButton>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleItalic(), true)"><template #icon><Italic :size="14" /></template></NButton>
         </template>
         斜体 Ctrl+I
       </NTooltip>
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleUnderline())"><template #icon><UnderlineIcon :size="14" /></template></NButton>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleUnderline(), true)"><template #icon><UnderlineIcon :size="14" /></template></NButton>
         </template>
         下划线 Ctrl+U
       </NTooltip>
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleStrike())"><template #icon><Strikethrough :size="14" /></template></NButton>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleStrike(), true)"><template #icon><Strikethrough :size="14" /></template></NButton>
         </template>
         删除线 Ctrl+Shift+X
       </NTooltip>
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleCode())"><template #icon><Code :size="14" /></template></NButton>
+          <NButton quaternary size="tiny" @click="cmd((c) => c.toggleCode(), true)"><template #icon><Code :size="14" /></template></NButton>
         </template>
         行内代码 Ctrl+E
       </NTooltip>
@@ -209,7 +227,7 @@ function onFontSize(v: string | null): void {
         :default-value="'#111827'"
         :style="{ width: '30px', height: '22px' }"
         title="字体颜色"
-        @update:value="(v: string) => cmd((c) => c.setColor(v))"
+        @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
       />
       <NColorPicker
         size="small"
@@ -218,7 +236,7 @@ function onFontSize(v: string | null): void {
         :default-value="'transparent'"
         :style="{ width: '30px', height: '22px' }"
         title="背景色"
-        @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v))"
+        @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
       />
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
