@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import type { ChainedCommands } from '@tiptap/core'
-import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { Bold, Code, Eraser, Italic, Strikethrough, Underline as UnderlineIcon } from '@lucide/vue'
 import { NButton, NColorPicker, NSelect, NTooltip } from 'naive-ui'
 import { buildExtensions } from './extensions'
@@ -23,6 +23,12 @@ let updateTimer: number | undefined
 // ---- 浮动格式工具栏（PRD FR-7.2 / UI-PLAN P1-5） ----
 const toolbarVisible = ref(false)
 const toolbarStyle = ref({ left: '0px', top: '0px' })
+const toolbarEl = ref<HTMLElement>()
+// 鼠标拖动选区过程中为 true：工具栏延迟到 mouseup 再显隐
+let mouseSelecting = false
+let cleanupToolbarListeners: (() => void) | undefined
+const TOOLBAR_GAP = 6
+const TOOLBAR_EDGE = 4
 const FONT_OPTIONS = [12, 14, 16, 18, 20, 24].map((n) => ({ label: String(n), value: String(n) }))
 const COLORS = ['#111827', '#ff0000', '#ff9900', '#ffcc00', '#33cc33', '#2563eb', '#9333ea', '#ffffff']
 
@@ -39,9 +45,27 @@ onMounted(() => {
   })
   editor.value = ed
   editorRegistry.set(props.tab.id, ed)
+
+  // 工具栏出现时机：拖选过程中隐藏，鼠标松开且有选区时再弹出
+  const onEditorMousedown = (): void => {
+    mouseSelecting = true
+    updateToolbar()
+  }
+  const onWindowMouseup = (): void => {
+    if (!mouseSelecting) return
+    mouseSelecting = false
+    updateToolbar()
+  }
+  ed.view.dom.addEventListener('mousedown', onEditorMousedown)
+  window.addEventListener('mouseup', onWindowMouseup)
+  cleanupToolbarListeners = () => {
+    ed.view.dom.removeEventListener('mousedown', onEditorMousedown)
+    window.removeEventListener('mouseup', onWindowMouseup)
+  }
 })
 
 onBeforeUnmount(() => {
+  cleanupToolbarListeners?.()
   editorRegistry.delete(props.tab.id)
   editor.value?.destroy()
   editor.value = undefined
@@ -73,18 +97,45 @@ function updateToolbar(): void {
     toolbarVisible.value = false
     return
   }
-  toolbarVisible.value = ed.isFocused && !ed.state.selection.empty && !doodle.active && !props.tab.readonly
+  toolbarVisible.value =
+    !mouseSelecting && ed.isFocused && !ed.state.selection.empty && !doodle.active && !props.tab.readonly
   if (!toolbarVisible.value) return
   try {
     const coords = ed.view.coordsAtPos(ed.state.selection.from)
     const wrap = ed.view.dom.closest('.editor-card')?.getBoundingClientRect()
     if (!wrap) return
+    // 先粗定位把元素渲染出来，nextTick 后按实测尺寸精定位
     toolbarStyle.value = {
-      left: `${Math.max(4, coords.left - wrap.left)}px`,
-      top: `${Math.max(4, coords.top - wrap.top - 46)}px`
+      left: `${coords.left - wrap.left}px`,
+      top: `${coords.top - wrap.top - 46}px`
     }
+    void nextTick(positionToolbar)
   } catch {
     toolbarVisible.value = false
+  }
+}
+
+/** 精定位：优先悬浮在选区上方，上方空间不足翻到选区下方，并钳制在卡片内，不遮挡选中文字 */
+function positionToolbar(): void {
+  const el = toolbarEl.value
+  const ed = editor.value
+  if (!el || !ed || !toolbarVisible.value) return
+  try {
+    const coords = ed.view.coordsAtPos(ed.state.selection.from)
+    const card = el.parentElement
+    if (!card) return
+    const rect = card.getBoundingClientRect()
+    const scrollY = card.scrollTop
+    const left = Math.min(
+      Math.max(TOOLBAR_EDGE, coords.left - rect.left),
+      Math.max(TOOLBAR_EDGE, rect.width - el.offsetWidth - TOOLBAR_EDGE)
+    )
+    const above = coords.top - rect.top + scrollY - el.offsetHeight - TOOLBAR_GAP
+    const below = coords.bottom - rect.top + scrollY + TOOLBAR_GAP
+    const top = above >= TOOLBAR_EDGE ? above : below
+    toolbarStyle.value = { left: `${left}px`, top: `${Math.max(TOOLBAR_EDGE, top)}px` }
+  } catch {
+    /* 选区已失效时保持当前位置 */
   }
 }
 
@@ -107,8 +158,10 @@ function onFontSize(v: string | null): void {
   <div class="editor-wrap editor-card relative min-w-0 flex-1 overflow-y-auto rounded-xl border border-panel-border shadow-sm">
     <div
       v-if="toolbarVisible"
+      ref="toolbarEl"
       class="no-drag absolute z-20 flex items-center gap-0.5 rounded-[10px] border border-panel-border bg-panel-bg p-1 shadow-lg ui-anim-pop"
       :style="toolbarStyle"
+      @mousedown.prevent
     >
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
         <template #trigger>
