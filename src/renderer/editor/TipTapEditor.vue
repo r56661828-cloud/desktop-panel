@@ -216,7 +216,7 @@ function onFontSize(v: string | null): void {
         clearable
         placeholder="字号"
         :options="FONT_OPTIONS"
-        :width="76"
+        :style="{ width: '76px', flexShrink: 0 }"
         class="mx-0.5"
         @update:value="onFontSize"
       />
@@ -225,7 +225,7 @@ function onFontSize(v: string | null): void {
         :show-alpha="false"
         :swatches="COLORS"
         :default-value="'#111827'"
-        :style="{ width: '30px', height: '22px' }"
+        :style="{ width: '30px', height: '22px', flexShrink: 0 }"
         title="字体颜色"
         @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
       />
@@ -234,7 +234,7 @@ function onFontSize(v: string | null): void {
         :show-alpha="false"
         :swatches="['transparent', ...COLORS]"
         :default-value="'transparent'"
-        :style="{ width: '30px', height: '22px' }"
+        :style="{ width: '30px', height: '22px', flexShrink: 0 }"
         title="背景色"
         @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
       />
