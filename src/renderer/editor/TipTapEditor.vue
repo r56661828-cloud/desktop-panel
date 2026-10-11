@@ -36,6 +36,10 @@ const COLORS = ['#111827', '#ff0000', '#ff9900', '#ffcc00', '#33cc33', '#2563eb'
 // 颜色按钮色条反映的当前选区颜色（updateToolbar 随事务刷新）
 const activeFontColor = ref('#111827')
 const activeBgColor = ref('transparent')
+// 弹层打开状态：打开期间工具栏强制保持显示（见 updateToolbar）
+const selectOpen = ref(false)
+const fontPickerOpen = ref(false)
+const bgPickerOpen = ref(false)
 
 onMounted(() => {
   const ed = new Editor({
@@ -107,11 +111,13 @@ function updateToolbar(): void {
   if (lastDismissedSelection !== null && selKey !== lastDismissedSelection) {
     lastDismissedSelection = null // 选区已变化，解除抑制
   }
+  // 面板/下拉打开期间强制保持工具栏：在弹层内 mousedown 会让编辑器失焦、
+  // DOM 选区被清除，若此时隐藏工具栏，挂在它下面的弹层会被一并拆除，
+  // 用户永远点不到色块/选项
+  const panelOpen = selectOpen.value || fontPickerOpen.value || bgPickerOpen.value
   toolbarVisible.value =
-    lastDismissedSelection === null &&
-    !mouseSelecting &&
-    ed.isFocused &&
-    !ed.state.selection.empty &&
+    (panelOpen ||
+      (lastDismissedSelection === null && !mouseSelecting && ed.isFocused && !ed.state.selection.empty)) &&
     !doodle.active &&
     !props.tab.readonly
   if (!toolbarVisible.value) return
@@ -164,6 +170,9 @@ function cmd(fn: (c: ChainedCommands) => ChainedCommands, autoClose = false): vo
   if (autoClose) {
     toolbarVisible.value = false
     lastDismissedSelection = `${ed.state.selection.from}:${ed.state.selection.to}`
+    selectOpen.value = false
+    fontPickerOpen.value = false
+    bgPickerOpen.value = false
   }
 }
 
@@ -223,6 +232,7 @@ function onFontSize(v: string | null): void {
         :options="FONT_OPTIONS"
         :style="{ width: '76px', flexShrink: 0 }"
         class="mx-0.5"
+        @update:show="(v: boolean) => (selectOpen = v)"
         @update:value="onFontSize"
       />
       <NTooltip trigger="hover" placement="bottom" :show-arrow="false">
@@ -235,6 +245,7 @@ function onFontSize(v: string | null): void {
               :swatches="COLORS"
               :default-value="'#111827'"
               class="color-face-picker"
+              @update:show="(v: boolean) => (fontPickerOpen = v)"
               @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
             />
             <span class="color-face" aria-hidden="true">
@@ -255,6 +266,7 @@ function onFontSize(v: string | null): void {
               :swatches="['transparent', ...COLORS]"
               :default-value="'transparent'"
               class="color-face-picker"
+              @update:show="(v: boolean) => (bgPickerOpen = v)"
               @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
             />
             <span class="color-face" aria-hidden="true">
