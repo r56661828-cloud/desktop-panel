@@ -120,7 +120,13 @@ function updateToolbar(): void {
       (lastDismissedSelection === null && !mouseSelecting && ed.isFocused && !ed.state.selection.empty)) &&
     !doodle.active &&
     !props.tab.readonly
-  if (!toolbarVisible.value) return
+  if (!toolbarVisible.value) {
+    // 工具栏隐藏时弹层必然被卸载，同步复位打开状态，避免 panelOpen 卡在 true
+    selectOpen.value = false
+    fontPickerOpen.value = false
+    bgPickerOpen.value = false
+    return
+  }
   activeFontColor.value = (ed.getAttributes('textStyle').color as string) || '#111827'
   activeBgColor.value = (ed.getAttributes('textStyle').backgroundColor as string) || 'transparent'
   try {
@@ -246,7 +252,7 @@ function onFontSize(v: string | null): void {
               :default-value="'#111827'"
               class="color-face-picker"
               @update:show="(v: boolean) => (fontPickerOpen = v)"
-              @update:value="(v: string) => cmd((c) => c.setColor(v), true)"
+              @update:value="(v: string) => cmd((c) => c.setColor(v))"
             />
             <span class="color-face" aria-hidden="true">
               <span class="color-face-letter">A</span>
@@ -267,7 +273,7 @@ function onFontSize(v: string | null): void {
               :default-value="'transparent'"
               class="color-face-picker"
               @update:show="(v: boolean) => (bgPickerOpen = v)"
-              @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v), true)"
+              @update:value="(v: string) => cmd((c) => c.setBackgroundColor(v === 'transparent' ? '' : v))"
             />
             <span class="color-face" aria-hidden="true">
               <PaintBucket :size="12" />
