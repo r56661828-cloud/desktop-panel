@@ -7,7 +7,7 @@ import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TextStyleKit } from '@tiptap/extension-text-style'
-import type { Extensions } from '@tiptap/core'
+import { Extension, type Extensions } from '@tiptap/core'
 import { Markdown } from 'tiptap-markdown'
 import { DoodleImage } from './extensions/doodle'
 import { resolveAssetSrc } from './assets'
@@ -90,10 +90,19 @@ const SerializableTable = Table.extend({
   }
 } as never)
 
+/** 删除线补充快捷键 Mod-Shift+X：Strike 默认是 Mod-Shift+S，与工具栏提示（Ctrl+Shift+X）不一致导致按提示按键无效 */
+const StrikeAltShortcut = Extension.create({
+  name: 'strikeAltShortcut',
+  addKeyboardShortcuts() {
+    return { 'Mod-Shift-x': () => this.editor.commands.toggleStrike() }
+  }
+})
+
 export function buildExtensions(options: { onEditDoodle?: (attrs: { src: string; dataSrc: string; width: number | null }, pos: number) => void } = {}): Extensions {
   return [
     // StarterKit v3 已内置 link/underline，关掉以使用下方带 md 序列化规则的版本
     StarterKit.configure({ link: false, underline: false }),
+    StrikeAltShortcut,
     SerializableUnderline,
     Link.configure({ openOnClick: false }),
     ResolvedImage,
